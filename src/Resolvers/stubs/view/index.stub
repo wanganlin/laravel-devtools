@@ -1,0 +1,138 @@
+<script setup lang="ts">
+import {reactive, ref, onActivated, nextTick} from "vue"
+import { message, Modal } from 'ant-design-vue';
+import { {{$camelName}}QueryService, {{$camelName}}DestroyService } from '@/services/admin/{{$camelName}}'
+import type { I{{$studlyName}}QueryRequest, I{{$studlyName}}Response} from '@/types/admin/{{$camelName}}'
+import {isAuth} from '@/utils'
+import Upsert from './UpsertView.vue'
+
+// 响应式数据
+const upsertRef = ref()
+const dataForm = reactive({
+  key: ''
+})
+const dataList = ref<I{{$studlyName}}Response[]>([])
+const pageIndex = ref(1)
+const pageSize = ref(10)
+const totalPage = ref(0)
+const dataListLoading = ref(false)
+const dataListSelections = ref<I{{$studlyName}}Response[]>([])
+const upsertVisible = ref(false)
+
+// 获取数据列表
+const getDataList = () => {
+  dataListLoading.value = true
+  const fromData: I{{$studlyName}}QueryRequest = reactive<I{{$studlyName}}QueryRequest>({})
+  {{$camelName}}QueryService(pageIndex.value, pageSize.value, fromData).then(({data, total}) => {
+      dataList.value = data
+      totalPage.value = total
+      dataListLoading.value = false
+    })
+}
+// 每页数
+const sizeChangeHandle = (val: number) => {
+  pageSize.value = val
+  pageIndex.value = 1
+  getDataList()
+}
+// 当前页
+const currentChangeHandle = (val: number) => {
+  pageIndex.value = val
+  getDataList()
+}
+// 多选
+const selectionChangeHandle = (val: I{{$studlyName}}Response[]) => {
+  dataListSelections.value = val
+}
+// 新增 / 修改
+const upsertHandle = (id?: number) => {
+  upsertVisible.value = true
+  nextTick(() => {
+    upsertRef.value.init(id)
+  })
+}
+// 删除
+const deleteHandle = (id?: number) => {
+  const ids = id ? [id] : dataListSelections.value.map(item => item.{{$primaryKey}})
+  Modal.confirm({
+    title: '提示',
+    content:  `确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?`,
+    okText: '确定',
+    cancelText: '取消',
+    onOk: () => {
+      {{$camelName}}DestroyService(ids).then(() => {
+        message.success('操作成功')
+        getDataList()
+      })
+    }
+  })
+}
+
+onActivated(() => {
+  getDataList()
+})
+</script>
+
+<template>
+    <div class="mod-config">
+    <a-form :inline="true" :model="dataForm" @keyup.enter="getDataList()">
+      <a-form-item>
+        <a-input v-model="dataForm.key" placeholder="参数名" clearable></a-input>
+      </a-form-item>
+      <a-form-item>
+        <a-button @click="getDataList()">查询</a-button>
+        <a-button v-if="isAuth('${moduleName}:${pathName}:save')" type="primary" @click="upsertHandle()">新增</a-button>
+        <a-button v-if="isAuth('${moduleName}:${pathName}:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</a-button>
+      </a-form-item>
+    </a-form>
+    <a-table
+      :data="dataList"
+      border
+      :loading="dataListLoading"
+      @selection-change="selectionChangeHandle"
+      style="width: 100%;">
+      <a-table-column
+        type="selection"
+        header-align="center"
+        align="center"
+        width="50">
+      </a-table-column>
+@foreach($columns as $column)
+      <a-table-column
+        prop="{{ $column['camel_name'] }}"
+        header-align="center"
+        align="center"
+        label="{{ $column['comment'] }}">
+      </a-table-column>
+@endforeach
+      <a-table-column
+        fixed="right"
+        header-align="center"
+        align="center"
+        width="150"
+        label="操作">
+        <template #default="{ row }">
+          <a-button type="text" size="small" @click="upsertHandle(row.{{$primaryKey}})">修改</a-button>
+          <a-button type="text" size="small" @click="deleteHandle(row.{{$primaryKey}})">删除</a-button>
+        </template>
+      </a-table-column>
+    </a-table>
+    <a-pagination
+      :current="pageIndex"
+      :page-size="pageSize"
+      :total="totalPage"
+      :show-size-changer="true"
+      :page-sizes="[10, 20, 50, 100]"
+      show-less-items
+      @size-change="sizeChangeHandle"
+      @change="currentChangeHandle"
+      @showSizeChange="sizeChangeHandle"
+    />
+    <!-- 弹窗, 新增 / 修改 -->
+    <upsert v-if="upsertVisible" ref="upsertRef" @refreshDataList="getDataList"></upsert>
+  </div>
+</template>
+
+<style scoped>
+
+</style>

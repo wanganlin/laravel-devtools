@@ -1,0 +1,34 @@
+declare(strict_types=1);
+
+namespace {{ $namespace }}\Requests\{{ $className }};
+
+use Illuminate\Foundation\Http\FormRequest;
+use OpenApi\Attributes as OA;
+
+#[OA\Schema(
+    schema: '{{ $schema }}',
+    required: [],
+    properties: [
+@foreach($tableColumns as $column)
+        new OA\Property(property: self::get{{ $column['studly_name'] }}, description: '{{$column['comment']}}', type: '{{$column['swagger_type']}}'),
+@endforeach
+    ]
+)]
+class {{ $schema }} extends FormRequest
+{
+@foreach($tableColumns as $column)
+    const string get{{ $column['studly_name'] }} = '{{$column['camel_name']}}';
+
+@endforeach
+    public function rules(): array
+    {
+        return [
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+        ];
+    }
+}

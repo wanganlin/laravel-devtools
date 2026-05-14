@@ -1,0 +1,44 @@
+declare(strict_types=1);
+
+namespace {{ $namespace }}\Requests\{{ $className }};
+
+use Illuminate\Foundation\Http\FormRequest;
+use OpenApi\Attributes as OA;
+
+#[OA\Schema(
+    schema: '{{ $schema }}',
+    required: [
+@foreach($tableColumns as $column)
+        self::get{{ $column['studly_name'] }},
+@endforeach
+    ],
+    properties: [
+@foreach($tableColumns as $column)
+        new OA\Property(property: self::get{{ $column['studly_name'] }}, description: '{{$column['comment']}}', type: '{{$column['swagger_type']}}'),
+@endforeach
+    ]
+)]
+class {{ $schema }} extends FormRequest
+{
+@foreach($tableColumns as $column)
+    const string get{{ $column['studly_name'] }} = '{{$column['camel_name']}}';
+
+@endforeach
+    public function rules(): array
+    {
+        return [
+@foreach($tableColumns as $column)
+            self::get{{ $column['studly_name'] }} => 'required',
+@endforeach
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+@foreach($tableColumns as $column)
+            self::get{{ $column['studly_name'] }}.'.required' => '请设置{{$column['comment']}}',
+@endforeach
+        ];
+    }
+}

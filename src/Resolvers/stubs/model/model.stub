@@ -1,0 +1,39 @@
+declare(strict_types=1);
+
+namespace {{ $namespace }}\Models;
+
+use Illuminate\Database\Eloquent\Model;
+@if($softDelete)
+use Illuminate\Database\Eloquent\SoftDeletes;
+@endif
+
+class {{ $className }} extends Model
+{
+@if($softDelete)
+    use SoftDeletes;
+@endif
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = '{{ $tableName }}';
+
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = '{{ $primaryKey }}';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+@foreach($tableColumns as $column)
+        '{{$column['name']}}',
+@endforeach
+    ];
+}

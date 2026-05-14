@@ -1,0 +1,110 @@
+<script setup lang="ts">
+import {reactive, ref, nextTick} from "vue"
+import { message as messageApi } from 'ant-design-vue';
+import { {{$camelName}}StoreService, {{$camelName}}ShowService, {{$camelName}}UpdateService } from '@/services/admin/{{$camelName}}'
+import type { I{{$studlyName}}UpsertRequest } from '@/types/admin/{{$camelName}}'
+
+const dataFormRef = ref()
+const visible = ref(false)
+const dataForm = reactive<I{{$studlyName}}UpsertRequest>({
+@foreach($columns as $column)
+@if($column['camel_name'] === $primaryKey)
+  {{ $column['camel_name'] }}: 0,
+@else
+  {{ $column['camel_name'] }}: '',
+@endif
+@endforeach
+})
+const dataRule = reactive({
+@foreach($columns as $column)
+@if($column['camel_name'] !== $primaryKey)
+  {{ $column['camel_name'] }}: [
+    { required: true, message: '{{$column['comment']}}不能为空', trigger: 'blur' }
+  ],
+@endif
+@endforeach
+})
+
+const init = (id: number) => {
+  dataForm.{{ $primaryKey }} = id || 0
+  visible.value = true
+  nextTick(() => {
+    dataFormRef.value.resetFields()
+    if (dataForm.{{ $primaryKey }}) {
+      {{$camelName}}ShowService(dataForm.{{ $primaryKey }}).then((data) => {
+@foreach($columns as $column)
+@if($column['camel_name'] === $primaryKey)
+        Object.assign(dataForm, data);
+@endif
+@endforeach
+      })
+    }
+  })
+}
+
+// 表单提交
+const dataFormSubmit = () => {
+  dataFormRef.value.validate((valid: any) => {
+    if (valid) {
+      const formData = reactive<I{{$studlyName}}UpsertRequest>({
+@foreach($columns as $column)
+@if($column['camel_name'] === $primaryKey)
+        {{ $column['camel_name'] }}: dataForm.{{ $column['camel_name'] }} || undefined,
+@else
+        {{ $column['camel_name'] }}: dataForm.{{ $column['camel_name'] }},
+@endif
+@endforeach
+      }) // (this.dataForm)
+
+      const messageBox = {
+        message: '操作成功',
+        type: 'success',
+        duration: 1500,
+        onClose: () => {
+          visible.value = false
+          emit('refreshDataList')
+        }
+      }
+
+      if (dataForm.{{ $primaryKey }}) {
+        {{$camelName}}UpdateService(dataForm.{{ $primaryKey }}, formData).then(() => {
+          messageApi.success(messageBox.message)
+        })
+      } else{
+        {{$camelName}}StoreService(formData).then(() => {
+          messageApi.success(messageBox.message)
+        })
+      }
+    }
+  }).catch(() => {
+        // 验证失败处理
+      });
+}
+
+const emit = defineEmits(['refreshDataList']);
+</script>
+
+<template>
+    <a-modal
+    :title="!dataForm.{{ $primaryKey }} ? '新增' : '修改'"
+    :visible="visible"
+    :footer="null"
+    @cancel="visible = false"
+    >
+    <a-form :model="dataForm" :rules="dataRule" ref="dataFormRef" @keyup.enter="dataFormSubmit()" layout="vertical" label-width="80px">
+@foreach($columns as $column)
+    <a-form-item label="{{ $column['comment'] }}" prop="{{ $column['camel_name'] }}">
+      <a-input v-model:value="dataForm.{{ $column['camel_name'] }}" placeholder="{{ $column['comment'] }}"></a-input>
+    </a-form-item>
+@endforeach
+    </a-form>
+    <span slot="footer" class="dialog-footer">
+      <a-button @click="visible = false">取消</a-button>
+      <a-button type="primary" @click="dataFormSubmit()">确定</a-button>
+    </span>
+  </a-modal>
+</template>
+
+<style scoped>
+
+</style>

@@ -1,0 +1,10 @@
+declare(strict_types=1);
+
+namespace {{ $namespace }};
+
+use {{ $useNamespace }}\{{ $className }}BundleService;
+
+class {{ $className }}Service extends {{ $className }}BundleService
+{
+    //
+}

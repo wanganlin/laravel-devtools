@@ -1,0 +1,15 @@
+declare(strict_types=1);
+
+namespace {{ $namespace }};
+
+use {{ $useNamespace }}\Repositories\{{ $className }}Repository;
+use Juling\Foundation\Contracts\ServiceInterface;
+use Juling\Foundation\Services\CommonService;
+
+class {{ $className }}BundleService extends CommonService implements ServiceInterface
+{
+    public function getRepository(): {{ $className }}Repository
+    {
+        return {{ $className }}Repository::getInstance();
+    }
+}

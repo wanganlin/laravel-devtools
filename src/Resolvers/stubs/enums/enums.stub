@@ -1,0 +1,14 @@
+declare(strict_types=1);
+
+namespace {{ $namespace }}\Enums;
+
+use Juling\Foundation\Contracts\EnumMethodInterface;
+use Juling\Foundation\Support\EnumMethods;
+
+/**
+ * {{ $comment }}枚举
+ */
+enum {{ $className }}Enum: {{ $enumsType }} implements EnumMethodInterface
+{
+    use EnumMethods;{!! $enums !!}
+}

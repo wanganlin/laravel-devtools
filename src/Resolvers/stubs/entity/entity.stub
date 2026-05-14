@@ -1,0 +1,40 @@
+declare(strict_types=1);
+
+namespace {{ $namespace }}\Entities;
+
+use Juling\Foundation\Support\DTOHelper;
+use OpenApi\Attributes as OA;
+
+#[OA\Schema(schema: '{{ $className }}Entity')]
+class {{ $className }}Entity
+{
+    use DTOHelper;
+@foreach($tableColumns as $column)
+
+    const string get{{$column['studly_name']}} = '{{$column['name']}}';@if(!empty($column['comment'])) // {{$column['comment']}}@endif
+
+@endforeach
+@foreach($tableColumns as $column)
+
+    #[OA\Property(property: '{{$column['camel_name']}}', description: '{{$column['comment']}}', type: '{{$column['swagger_type']}}')]
+    private {{$column['base_type']}} ${{$column['camel_name']}};
+@endforeach
+@foreach($tableColumns as $key => $column)
+
+    /**
+     * 获取{{$column['comment']}}
+     */
+    public function get{{$column['studly_name']}}(): {{$column['base_type']}}
+    {
+        return $this->{{$column['camel_name']}};
+    }
+
+    /**
+     * 设置{{$column['comment']}}
+     */
+    public function set{{$column['studly_name']}}({{$column['base_type']}} ${{$column['camel_name']}}): void
+    {
+        $this->{{$column['camel_name']}} = ${{$column['camel_name']}};
+    }
+@endforeach
+}
