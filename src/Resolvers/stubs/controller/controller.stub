@@ -23,7 +23,7 @@ use Throwable;
 
 class {{ $className }}Controller extends BaseController
 {
-    #[OA\Post(path: '/{{ $classCamelName }}/query', summary: '查询{{ $comment }}列表接口', security: [['bearerAuth' => []]], tags: ['{{ $comment }}模块'])]
+    #[OA\Post(path: '/{{ $classCamelName }}/search', summary: '查询{{ $comment }}列表接口', security: [['bearerAuth' => []]], tags: ['{{ $comment }}模块'])]
     #[OA\Parameter(name: 'page', description: '当前页码', in: 'query', required: true, example: 1)]
     #[OA\Parameter(name: 'pageSize', description: '每页分页数', in: 'query', required: false, example: 10)]
     #[OA\RequestBody(required: true, content: new OA\JsonContent(ref: {{ $className }}QueryRequest::class))]
@@ -34,7 +34,7 @@ class {{ $className }}Controller extends BaseController
             new OA\Property(property: 'data', ref: {{ $className }}QueryResponse::class),
         ],
     ))]
-    public function query({{ $className }}QueryRequest $queryRequest): JsonResponse
+    public function search({{ $className }}QueryRequest $queryRequest): JsonResponse
     {
         $page = intval($queryRequest->query('page', 1));
         $pageSize = intval($queryRequest->query('pageSize', 10));
@@ -189,7 +189,7 @@ if (isset($requestData[{{ $className }}QueryRequest::get{{$index['studly_name']}
         }
     }
 
-    #[OA\Delete(path: '/{{ $classCamelName }}/destroy', summary: '删除{{ $comment }}接口', security: [['bearerAuth' => []]], tags: ['{{ $comment }}模块'])]
+    #[OA\Post(path: '/{{ $classCamelName }}/destroy', summary: '删除{{ $comment }}接口', security: [['bearerAuth' => []]], tags: ['{{ $comment }}模块'])]
     #[OA\RequestBody(required: true, content: new OA\JsonContent(ref: {{ $className }}DestroyRequest::class))]
     #[OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(
         properties: [
