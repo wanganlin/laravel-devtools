@@ -6,5 +6,5 @@ use {{ $useNamespace }}\{{ $className }}BundleService;
 
 class {{ $className }}Service extends {{ $className }}BundleService
 {
-    //
+    // Fill this file as you wish. 
 }

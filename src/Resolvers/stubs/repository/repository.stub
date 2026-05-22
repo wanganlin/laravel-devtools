@@ -44,7 +44,7 @@ class {{ $className }}Repository extends CurdRepository implements RepositoryInt
             return null;
         }
 
-        return new {{ $className }}Entity($data);
+        return {{ $className }}Entity::from($data);
     }
 
     /**
@@ -57,7 +57,7 @@ class {{ $className }}Repository extends CurdRepository implements RepositoryInt
             return null;
         }
 
-        return new {{ $className }}Entity($data);
+        return {{ $className }}Entity::from($data);
     }
 
     /**
