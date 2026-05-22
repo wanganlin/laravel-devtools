@@ -16,7 +16,7 @@ use OpenApi\Attributes as OA;
 )]
 class {{ $schema }} extends FormRequest
 {
-    const string getIds = 'ids';
+    public const string getIds = 'ids';
 
     public function rules(): array
     {

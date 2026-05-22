@@ -21,7 +21,7 @@ use OpenApi\Attributes as OA;
 class {{ $schema }} extends FormRequest
 {
 @foreach($tableColumns as $column)
-    const string get{{ $column['studly_name'] }} = '{{$column['camel_name']}}';
+    public const string get{{ $column['studly_name'] }} = '{{$column['camel_name']}}';
 
 @endforeach
     public function rules(): array
