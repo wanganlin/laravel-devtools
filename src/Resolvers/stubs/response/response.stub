@@ -2,13 +2,13 @@ declare(strict_types=1);
 
 namespace {{ $namespace }}\Responses\{{ $className }};
 
-use Juling\Foundation\Support\DTOHelper;
+use Juling\Foundation\Traits\HasSerializableAttributes;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: '{{ $className }}Response')]
-class {{ $className }}Response
+class {{ $className }}Response implements \JsonSerializable
 {
-    use DTOHelper;
+    use HasSerializableAttributes;
 @foreach($tableColumns as $column)
 
     #[OA\Property(property: '{{$column['camel_name']}}', description: '{{$column['comment']}}', type: '{{$column['swagger_type']}}')]

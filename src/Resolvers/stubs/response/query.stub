@@ -3,13 +3,13 @@ declare(strict_types=1);
 namespace {{ $namespace }}\Responses\{{ $className }};
 
 use Juling\Foundation\Http\Responses\PaginateLinkVo;
-use Juling\Foundation\Support\DTOHelper;
+use Juling\Foundation\Traits\HasSerializableAttributes;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: '{{ $className }}QueryResponse')]
-class {{ $className }}QueryResponse
+class {{ $className }}QueryResponse implements \JsonSerializable
 {
-    use DTOHelper;
+    use HasSerializableAttributes;
 
     #[OA\Property(property: 'currentPage', description: '当前页码', type: 'integer')]
     private int $currentPage;

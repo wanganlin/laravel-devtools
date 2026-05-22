@@ -2,16 +2,16 @@ declare(strict_types=1);
 
 namespace {{ $namespace }}\Entities;
 
-use Juling\Foundation\Support\DTOHelper;
+use Juling\Foundation\Traits\HasSerializableAttributes;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: '{{ $className }}Entity')]
-class {{ $className }}Entity
+class {{ $className }}Entity implements \JsonSerializable
 {
-    use DTOHelper;
+    use HasSerializableAttributes;
 @foreach($tableColumns as $column)
 
-    const string get{{$column['studly_name']}} = '{{$column['name']}}';@if(!empty($column['comment'])) // {{$column['comment']}}@endif
+    public const string get{{$column['studly_name']}} = '{{$column['name']}}';@if(!empty($column['comment'])) // {{$column['comment']}}@endif
 
 @endforeach
 @foreach($tableColumns as $column)

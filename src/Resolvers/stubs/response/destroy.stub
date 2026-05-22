@@ -2,13 +2,13 @@ declare(strict_types=1);
 
 namespace {{ $namespace }}\Responses\{{ $className }};
 
-use Juling\Foundation\Support\DTOHelper;
+use Juling\Foundation\Traits\HasSerializableAttributes;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(schema: '{{ $className }}DestroyResponse')]
-class {{ $className }}DestroyResponse
+class {{ $className }}DestroyResponse implements \JsonSerializable
 {
-    use DTOHelper;
+    use HasSerializableAttributes;
 
     #[OA\Property(property: 'status', description: '状态:1成功，2失败', type: 'integer')]
     private int $status;
