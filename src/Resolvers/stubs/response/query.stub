@@ -2,7 +2,7 @@ declare(strict_types=1);
 
 namespace {{ $namespace }}\Responses\{{ $className }};
 
-use Juling\Foundation\Http\Responses\PaginateLinkVo;
+use App\Http\Responses\PaginateLinkVo;
 use Juling\Foundation\Support\Traits\HasSerializableAttributes;
 use OpenApi\Attributes as OA;
 
