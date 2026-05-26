@@ -2,9 +2,16 @@ declare(strict_types=1);
 
 namespace {{ $namespace }};
 
-use {{ $useNamespace }}\{{ $className }}BundleService;
+use {{ $useNamespace }}\Repositories\{{ $className }}Repository;
+use Juling\Foundation\Contracts\ServiceInterface;
+use Juling\Foundation\Services\CommonService;
 
-class {{ $className }}Service extends {{ $className }}BundleService
+class {{ $className }}Service extends CommonService implements ServiceInterface
 {
-    // Fill this file as you wish. 
+    public function getRepository(): {{ $className }}Repository
+    {
+        return {{ $className }}Repository::getInstance();
+    }
+
+    // your code
 }
