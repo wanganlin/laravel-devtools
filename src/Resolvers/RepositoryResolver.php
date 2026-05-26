@@ -16,8 +16,8 @@ class RepositoryResolver extends Foundation
     {
         if ($devConfig->getMultiModule()) {
             $groupName = $this->getTableGroupName($data['tableName']);
-            $dist = $devConfig->getDist('app/Bundles/'.$groupName.'/Repositories');
-            $data['namespace'] = "App\\Bundles\\$groupName";
+            $dist = $devConfig->getDist('app/Modules/'.$groupName.'/Repositories');
+            $data['namespace'] = "App\\Modules\\$groupName";
         } else {
             $dist = $devConfig->getDist('app/Repositories');
             $data['namespace'] = 'App';

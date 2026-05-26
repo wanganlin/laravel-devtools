@@ -34,11 +34,11 @@ class ControllerResolver extends Foundation
 
         $devConfig = new DevConfig;
         if ($devConfig->getMultiModule()) {
-            $dist = $devConfig->getDist('app/Bundles/'.$groupName.'/Controllers');
-            $namespace = "App\\Bundles\\$groupName";
-            $entityNamespace = "App\\Bundles\\$groupName\\Entities";
-            $serviceNamespace = "App\\Bundles\\$groupName\\Services";
-            $serviceName = $className.'Bundle';
+            $dist = $devConfig->getDist('app/Modules/'.$groupName.'/Controllers');
+            $namespace = "App\\Modules\\$groupName";
+            $entityNamespace = "App\\Modules\\$groupName\\Entities";
+            $serviceNamespace = "App\\Modules\\$groupName\\Services";
+            $serviceName = $className;
         } else {
             $dist = $devConfig->getDist('app/Api/'.$outDir.'/Controllers');
             $namespace = 'App\\Api\\'.$outDir;
@@ -133,8 +133,8 @@ class ControllerResolver extends Foundation
         $devConfig = new DevConfig;
         if ($devConfig->getMultiModule()) {
             $groupName = $this->getTableGroupName(Str::snake($className));
-            $dist = $devConfig->getDist('app/Bundles/'.$groupName.'/Requests/'.$className);
-            $namespace = "App\\Bundles\\$groupName";
+            $dist = $devConfig->getDist('app/Modules/'.$groupName.'/Requests/'.$className);
+            $namespace = "App\\Modules\\$groupName";
         } else {
             $dist = $devConfig->getDist('app/Api/'.$outDir.'/Requests/'.$className);
             $namespace = 'App\\Api\\'.$outDir;
@@ -154,8 +154,8 @@ class ControllerResolver extends Foundation
         $devConfig = new DevConfig;
         if ($devConfig->getMultiModule()) {
             $groupName = $this->getTableGroupName(Str::snake($className));
-            $dist = $devConfig->getDist('app/Bundles/'.$groupName.'/Responses/'.$className);
-            $namespace = "App\\Bundles\\$groupName";
+            $dist = $devConfig->getDist('app/Modules/'.$groupName.'/Responses/'.$className);
+            $namespace = "App\\Modules\\$groupName";
         } else {
             $dist = $devConfig->getDist('app/Api/'.$outDir.'/Responses/'.$className);
             $namespace = 'App\\Api\\'.$outDir;

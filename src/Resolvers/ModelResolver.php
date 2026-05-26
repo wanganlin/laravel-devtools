@@ -16,8 +16,8 @@ class ModelResolver extends Foundation
     {
         if ($devConfig->getMultiModule()) {
             $groupName = $this->getTableGroupName($data['tableName']);
-            $dist = $devConfig->getDist('app/Bundles/'.$groupName.'/Models');
-            $data['namespace'] = "App\\Bundles\\$groupName";
+            $dist = $devConfig->getDist('app/Modules/'.$groupName.'/Models');
+            $data['namespace'] = "App\\Modules\\$groupName";
         } else {
             $dist = $devConfig->getDist('app/Models');
             $data['namespace'] = 'App';

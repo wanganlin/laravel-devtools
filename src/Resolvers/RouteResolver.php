@@ -23,7 +23,7 @@ class RouteResolver extends Foundation
     {
         $dirs = array_merge(
             glob(app_path('Api/*'), GLOB_ONLYDIR),
-            glob(app_path('Bundles/*'), GLOB_ONLYDIR),
+            glob(app_path('Http/Controllers/*'), GLOB_ONLYDIR),
             glob(app_path('Modules/*'), GLOB_ONLYDIR)
         );
         foreach ($dirs as $dir) {
