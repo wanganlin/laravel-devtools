@@ -42,5 +42,10 @@ class DevToolsServiceProvider extends ServiceProvider
                 Commands\InitCommand::class,
             ]);
         }
+
+        if ($this->app->hasDebugModeEnabled()) {
+            $this->loadRoutesFrom(__DIR__.'/Routes/web.php');
+            $this->loadViewsFrom(__DIR__.'/Views', '__foundation__');
+        }
     }
 }
