@@ -7,7 +7,8 @@
     },
     "require-dev": {
         "laravel/pint": "^1.29",
-        "phpstan/phpstan": "^2.1"
+        "phpstan/phpstan": "^2.1",
+        "zircote/swagger-php": "^6.1"
     },
     "autoload": {
         "psr-4": {
