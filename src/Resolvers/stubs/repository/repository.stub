@@ -12,20 +12,6 @@ use Juling\Foundation\Repositories\CurdRepository;
 
 class {{ $className }}Repository extends CurdRepository implements RepositoryInterface
 {
-    private static ?{{ $className }}Repository $instance = null;
-
-    /**
-     * 单例 {{ $className }}Repository
-     */
-    public static function getInstance(): {{ $className }}Repository
-    {
-        if (is_null(self::$instance)) {
-            self::$instance = new {{ $className }}Repository;
-        }
-
-        return self::$instance;
-    }
-
     /**
      * 添加 {{ $className }}Entity
      */
