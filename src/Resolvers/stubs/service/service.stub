@@ -8,10 +8,15 @@ use Juling\Foundation\Services\CommonService;
 
 class {{ $className }}Service extends CommonService implements ServiceInterface
 {
+    public function __construct(
+        private readonly {{ $className }}Repository $repository,
+    ) {}
+
     public function getRepository(): {{ $className }}Repository
     {
-        return {{ $className }}Repository::getInstance();
+        return $this->repository;
     }
 
-    // your code
+    // please fill in your code here
+    
 }
