@@ -23,6 +23,10 @@ use Throwable;
 
 class {{ $className }}Controller extends BaseController
 {
+    public function __construct(
+        private readonly {{ $serviceName }}Service ${{ $serviceCamelName }}Service,
+    ) {}
+
     #[OA\Post(path: '/{{ $classCamelName }}/search', summary: '查询{{ $comment }}列表接口', security: [['bearerAuth' => []]], tags: ['{{ $comment }}模块'])]
     #[OA\Parameter(name: 'page', description: '当前页码', in: 'query', required: true, example: 1)]
     #[OA\Parameter(name: 'pageSize', description: '每页分页数', in: 'query', required: false, example: 10)]
@@ -48,8 +52,7 @@ if (isset($requestData[{{ $className }}QueryRequest::get{{$index['studly_name']}
             }
             @endforeach
 
-            ${{ $serviceCamelName }}Service = new {{ $serviceName }}Service;
-            $result = ${{ $serviceCamelName }}Service->page($condition, $page, $pageSize);
+            $result = $this->{{ $serviceCamelName }}Service->page($condition, $page, $pageSize);
 
             foreach ($result['data'] as $key => $item) {
                 $response = {{ $className }}Response::from($item);
@@ -91,8 +94,7 @@ if (isset($requestData[{{ $className }}QueryRequest::get{{$index['studly_name']}
         try {
             $input = {{ $className }}Entity::from($requestData);
 
-            ${{ $serviceCamelName }}Service = new {{ $serviceName }}Service;
-            if (${{ $serviceCamelName }}Service->save($input->toEntity())) {
+            if ($this->{{ $serviceCamelName }}Service->save($input->toEntity())) {
                 DB::commit();
 
                 return $this->success();
@@ -126,8 +128,7 @@ if (isset($requestData[{{ $className }}QueryRequest::get{{$index['studly_name']}
         $id = \intval($request->query('id', '0'));
 
         try {
-            ${{ $serviceCamelName }}Service = new {{ $serviceName }}Service;
-            ${{ $classCamelName }} = ${{ $serviceCamelName }}Service->getOneById($id);
+            ${{ $classCamelName }} = $this->{{ $serviceCamelName }}Service->getOneById($id);
             if (empty(${{ $classCamelName }})) {
                 throw new BusinessException(BusinessEnum::NOT_FOUND);
             }
@@ -163,15 +164,14 @@ if (isset($requestData[{{ $className }}QueryRequest::get{{$index['studly_name']}
 
         DB::beginTransaction();
         try {
-            ${{ $serviceCamelName }}Service = new {{ $serviceName }}Service;
-            ${{ $classCamelName }} = ${{ $serviceCamelName }}Service->getOneById($id);
+            ${{ $classCamelName }} = $this->{{ $serviceCamelName }}Service->getOneById($id);
             if (empty(${{ $classCamelName }})) {
                 throw new BusinessException(BusinessEnum::NOT_FOUND);
             }
 
             $input = {{ $className }}Entity::from($requestData);
 
-            ${{ $serviceCamelName }}Service->updateById($input->toEntity(), $id);
+            $this->{{ $serviceCamelName }}Service->updateById($input->toEntity(), $id);
 
             DB::commit();
 
@@ -204,8 +204,7 @@ if (isset($requestData[{{ $className }}QueryRequest::get{{$index['studly_name']}
 
         DB::beginTransaction();
         try {
-            ${{ $serviceCamelName }}Service = new {{ $serviceName }}Service;
-            if (${{ $serviceCamelName }}Service->removeByIds($requestData['ids'])) {
+            if ($this->{{ $serviceCamelName }}Service->removeByIds($requestData['ids'])) {
                 DB::commit();
 
                 return $this->success();
