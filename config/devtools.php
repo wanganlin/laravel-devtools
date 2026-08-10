@@ -2,7 +2,7 @@
 
 return [
     'dist' => base_path(),
-    'multi_module' => true,
+    'multi_module' => false,
     'exclude_tables' => [
         'cache',
         'cache_locks',
