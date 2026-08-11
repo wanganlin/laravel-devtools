@@ -2,7 +2,7 @@
 
 return [
     'dist' => base_path(),
-    'multi_module' => false,
+    'domain_mode' => true,
     'exclude_tables' => [
         'cache',
         'cache_locks',
@@ -28,5 +28,5 @@ return [
     'exclude_views' => [
         'login',
     ],
-    'ignore_singular' => false,
+    'convert_to_singular' => true,
 ];

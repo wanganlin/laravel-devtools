@@ -16,8 +16,8 @@ class EntityResolver extends Foundation
     {
         if ($devConfig->getMultiModule()) {
             $groupName = $this->getTableGroupName($data['tableName']);
-            $dist = $devConfig->getDist('app/Modules/'.$groupName.'/Entities');
-            $data['namespace'] = "App\\Modules\\$groupName";
+            $dist = $devConfig->getDist('app/Domains/'.$groupName.'/Entities');
+            $data['namespace'] = "App\\Domains\\$groupName";
         } else {
             $dist = $devConfig->getDist('app/Entities');
             $data['namespace'] = 'App';

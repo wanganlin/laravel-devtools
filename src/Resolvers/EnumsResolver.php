@@ -17,8 +17,8 @@ class EnumsResolver extends Foundation
     {
         if ($devConfig->getMultiModule()) {
             $groupName = $this->getTableGroupName($data['tableName']);
-            $dist = $devConfig->getDist('app/Modules/'.$groupName.'/Enums');
-            $data['namespace'] = "App\\Modules\\$groupName";
+            $dist = $devConfig->getDist('app/Domains/'.$groupName.'/Enums');
+            $data['namespace'] = "App\\Domains\\$groupName";
         } else {
             $dist = $devConfig->getDist('app/Enums');
             $data['namespace'] = 'App';
@@ -29,7 +29,7 @@ class EnumsResolver extends Foundation
 
         foreach ($data['tableColumns'] as $column) {
             if ($column['type'] === 'enum' || $column['type_name'] === 'tinyint') {
-                $enumsClass = Str::studly($this->getSingular($column['name']));
+                $enumsClass = Str::studly($this->convertToSingular($column['name']));
                 $comment = Str::replace('：', ':', $column['comment']);
                 $comment = Str::replace('，', ',', $comment);
 

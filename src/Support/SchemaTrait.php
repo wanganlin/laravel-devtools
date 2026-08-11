@@ -13,7 +13,7 @@ trait SchemaTrait
 {
     private array $ignoreTables = [];
 
-    private bool $ignoreSingular = true;
+    private bool $convertToSingular = true;
 
     private function getTables(?string $tablePrefix = null, ?string $tableName = null): array
     {
@@ -118,7 +118,7 @@ trait SchemaTrait
     {
         $groups = explode('_', $tableName);
 
-        return Str::studly($this->getSingular($groups[0]));
+        return Str::studly($this->convertToSingular($groups[0]));
     }
 
     private function resolve(string $genType, array $table = []): void
@@ -127,12 +127,12 @@ trait SchemaTrait
         $namespace = str_replace('/', '\\', dirname($namespace));
 
         if (! empty($table)) {
-            $singular = $this->getSingular($table['name']);
+            $singularTableName = $this->convertToSingular($table['name']);
             $table = [
                 'tableName' => $table['name'],
-                'className' => Str::studly($singular),
-                'camelName' => Str::camel($singular),
-                'snakeName' => Str::snake($singular),
+                'className' => Str::studly($singularTableName),
+                'camelName' => Str::camel($singularTableName),
+                'snakeName' => Str::snake($singularTableName),
                 'tableComment' => StrHelper::rtrim($table['comment'], '表'),
             ];
         }
@@ -144,15 +144,15 @@ trait SchemaTrait
         }
     }
 
-    private function getSingular(string $name): string
+    private function convertToSingular(string $name): string
     {
-        $this->ignoreSingular = config('devtools.ignore_singular', $this->ignoreSingular);
+        $this->convertToSingular = config('devtools.convert_to_singular', $this->convertToSingular);
 
-        if ($this->ignoreSingular) {
-            return $name;
+        if ($this->convertToSingular) {
+            return Str::singular($name);
         }
 
-        return Str::singular($name);
+        return $name;
     }
 
     private function ensureDirectoryExists(array|string $dirs): void

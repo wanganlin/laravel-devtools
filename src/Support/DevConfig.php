@@ -27,7 +27,7 @@ class DevConfig
 
     public function getMultiModule(): bool
     {
-        return $this->config['multi_module'];
+        return $this->config['domain_mode'];
     }
 
     public function getIgnoreTables(): array
@@ -53,10 +53,5 @@ class DevConfig
     public function getIgnoreControllers(): array
     {
         return $this->config['exclude_controllers'];
-    }
-
-    public function getIgnoreSingular(): bool
-    {
-        return $this->config['ignore_singular'];
     }
 }
