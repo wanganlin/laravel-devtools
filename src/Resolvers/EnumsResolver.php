@@ -26,57 +26,120 @@ class EnumsResolver extends Foundation
         $this->ensureDirectoryExists($dist);
 
         $data['tableColumns'] = $this->getTableColumns($data['tableName'], fn ($fieldType) => $this->getFieldType($fieldType));
-
         foreach ($data['tableColumns'] as $column) {
-            if ($column['type'] === 'enum' || $column['type_name'] === 'tinyint') {
-                $enumsClass = Str::studly($this->convertToSingular($column['name']));
-                $comment = Str::replace('：', ':', $column['comment']);
-                $comment = Str::replace('，', ',', $comment);
+            if (! in_array($column['type_name'], ['enum', 'tinyint'], true)) {
+                continue;
+            }
 
-                $split = explode(':', $comment);
-                if (count($split) < 2) {
-                    continue;
-                }
+            $parsed = $this->parseComment($column['comment']);
+            if ($parsed === null) {
+                continue;
+            }
 
-                [$enumsName, $enumsOptions] = $split;
-                $enumsOptions = explode(',', $enumsOptions);
-                $enumsOptions = array_map(function ($enumsOption) {
-                    if (Str::contains($enumsOption, '-')) {
-                        return explode('-', $enumsOption);
-                    } else {
-                        preg_match('/^(\d+)(.*)$/', $enumsOption, $matches);
+            $this->writeEnumClass($data, $dist, $column, $parsed[0], $parsed[1]);
+        }
+    }
 
-                        return [$matches[1], $matches[2]];
-                    }
-                }, $enumsOptions);
+    /**
+     * 解析字段注释中的枚举定义，格式：枚举名:值-标签,值-标签
+     *
+     * @return array{0: string, 1: list<array{0: string, 1: string}>}|null 无有效选项时返回 null
+     */
+    private function parseComment(string $comment): ?array
+    {
+        $comment = Str::replace(['：', '，'], [':', ','], $comment);
 
-                $enums = '';
-                $enumsType = 'int';
-                foreach ($enumsOptions as $enumOption) {
-                    $caseName = $enumsClass.$enumOption[0];
-                    $caseVal = $enumOption[0];
-                    $enums .= <<<EOF
+        $split = explode(':', $comment, 2);
+        if (count($split) < 2) {
+            return null;
+        }
+        [$enumsName, $options] = $split;
+
+        $enumsOptions = [];
+        foreach (explode(',', $options) as $option) {
+            if (! Str::contains($option, '-')) {
+                continue;
+            }
+
+            [$value, $label] = explode('-', $option, 2);
+            if ($value === '' || $label === '') {
+                continue;
+            }
+
+            $enumsOptions[] = [$value, $label];
+        }
+
+        if ($enumsOptions === []) {
+            return null;
+        }
+
+        return [$enumsName, $enumsOptions];
+    }
+
+    /**
+     * @param  list<array{0: string, 1: string}>  $enumsOptions
+     */
+    private function writeEnumClass(array $data, string $dist, array $column, string $enumsName, array $enumsOptions): void
+    {
+        $enumsClass = Str::studly($this->convertToSingular($column['name']));
+        $isInt = $this->isIntEnum($column['type_name'], $enumsOptions);
+
+        $enums = '';
+        foreach ($enumsOptions as [$value, $label]) {
+            $caseName = $isInt ? $enumsClass.$value : $this->toCaseName($enumsClass, $value);
+            $caseValue = $isInt ? $value : "'".str_replace("'", "\\'", $value)."'";
+            $enums .= <<<EOF
 
 
     /**
-     * $enumOption[1]
+     * $label
      */
-    case $caseName = $caseVal;
+    case $caseName = $caseValue;
 EOF;
-                    if (! is_numeric($caseVal)) {
-                        $enumsType = 'string';
-                    }
-                }
+        }
 
-                $data['comment'] = $enumsName;
-                $data['className'] = $data['className'].$enumsClass;
-                $data['enums'] = $enums;
-                $data['enumsType'] = $enumsType;
+        $data = array_merge($data, [
+            'comment' => $enumsName,
+            'className' => $data['className'].$enumsClass,
+            'enums' => $enums,
+            'enumsType' => $isInt ? 'int' : 'string',
+        ]);
 
-                $tpl = file_get_contents(__DIR__.'/stubs/enums/enums.stub');
-                $content = Blade::render($tpl, $data, deleteCachedView: true);
-                file_put_contents($dist.'/'.$data['className'].'Enum.php', "<?php\n\n".$content);
+        $tpl = file_get_contents(__DIR__.'/stubs/enums/enums.stub');
+        $content = Blade::render($tpl, $data, deleteCachedView: true);
+        file_put_contents($dist.'/'.$data['className'].'Enum.php', "<?php\n\n".$content);
+    }
+
+    /**
+     * tinyint 且所有取值均为数字时使用 int 作为枚举底层类型，否则使用 string
+     *
+     * @param  list<array{0: string, 1: string}>  $enumsOptions
+     */
+    private function isIntEnum(string $typeName, array $enumsOptions): bool
+    {
+        if ($typeName !== 'tinyint') {
+            return false;
+        }
+
+        foreach ($enumsOptions as [$value]) {
+            if (! is_numeric($value)) {
+                return false;
             }
         }
+
+        return true;
+    }
+
+    /**
+     * 生成合法的枚举成员名：以字母/下划线开头，否则加上枚举类名前缀（如 1 -> Status1）
+     */
+    private function toCaseName(string $enumsClass, string $value): string
+    {
+        $caseName = Str::studly($value);
+        if ($caseName === '' || ! preg_match('/^[a-zA-Z_\x80-\xfe]/', $caseName)) {
+            return $enumsClass.$caseName;
+        }
+
+        return $caseName;
     }
 }
