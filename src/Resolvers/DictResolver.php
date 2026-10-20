@@ -16,7 +16,7 @@ class DictResolver extends Foundation
         $dist = $devConfig->getDist('docs/dict');
         $this->ensureDirectoryExists($dist);
 
-        $content = "# {$data['comment']}(`{$data['tableName']}`)\n\n";
+        $content = "# {$data['tableComment']}(`{$data['tableName']}`)\n\n";
         $columns = $this->getTableColumns($data['tableName']);
         $content .= $this->getContent($columns);
 

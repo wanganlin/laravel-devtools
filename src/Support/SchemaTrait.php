@@ -38,9 +38,90 @@ trait SchemaTrait
                     unset($tables[$key]);
                 }
             }
+
+            // 批量生成时跳过中间关联表（中间表由 belongsToMany 关联维护，无需生成 entity/model/service 等业务代码）
+            if (empty($tableName) && isset($tables[$key]) && $this->isPivotTable($table['name'])) {
+                unset($tables[$key]);
+            }
         }
 
         return $tables;
+    }
+
+    /**
+     * 判断是否为中间关联表（Pivot Table）。
+     *
+     * 中间表用于维护两张实体表之间的多对多关系（如 role_user 关联 roles、users），
+     * 通常由 belongsToMany 的 attach/detach/sync 维护，无需生成独立的业务代码。
+     *
+     * 判定规则（满足其一）：
+     * 1. 恰好包含两个外键，且除主键、外键列、时间戳列外没有其他业务字段；
+     * 2. 表名可按 Laravel 约定拆分为两张已存在的关联表（如 role_user 拆分为 role、user），
+     *    且除主键、对应的两个外键列、时间戳列外没有其他业务字段（适用于未定义外键约束的表）；
+     * 3. 联合主键，且除主键、时间戳列外全部为 *_id 列或成对的多态 *_type/*_id 列
+     *    （结构特征不依赖命名与外键约束，覆盖 taggables 多态中间表、admin_role_permissions 三向关联表）。
+     */
+    private function isPivotTable(string $tableName): bool
+    {
+        $allowColumns = ['id', 'created_at', 'updated_at', 'deleted_at'];
+        $columns = array_column(Schema::getColumns($tableName), 'name');
+
+        $foreignKeys = Schema::getForeignKeys($tableName);
+        if (count($foreignKeys) === 2) {
+            $fkColumns = Arr::collapse(Arr::pluck($foreignKeys, 'columns'));
+
+            if (empty(array_diff($columns, array_merge($allowColumns, $fkColumns)))) {
+                return true;
+            }
+        }
+
+        $parts = explode('_', $tableName);
+        for ($i = 1; $i < count($parts); $i++) {
+            $left = Str::singular(implode('_', array_slice($parts, 0, $i)));
+            $right = Str::singular(implode('_', array_slice($parts, $i)));
+            $fkColumns = [$left.'_id', $right.'_id'];
+
+            if (! in_array($fkColumns[0], $columns) || ! in_array($fkColumns[1], $columns)) {
+                continue;
+            }
+            if (! empty(array_diff($columns, array_merge($allowColumns, $fkColumns)))) {
+                continue;
+            }
+
+            $database = config('database.connections.mysql.database');
+            $tables = array_flip(array_column(array_filter(Schema::getTables(), fn ($table) => $table['schema'] === $database), 'name'));
+
+            if (isset($tables[Str::plural($left)], $tables[Str::plural($right)])) {
+                return true;
+            }
+        }
+
+        // 规则三：联合主键，且除主键、时间戳列外全部为 *_id 列或成对的多态 *_type/*_id 列
+        $primaryColumns = [];
+        foreach (Schema::getIndexes($tableName) as $index) {
+            if ($index['primary']) {
+                $primaryColumns = $index['columns'];
+                break;
+            }
+        }
+
+        if (count($primaryColumns) >= 2) {
+            foreach ($columns as $column) {
+                if (in_array($column, $allowColumns, true) || preg_match('/_id$/', $column)) {
+                    continue;
+                }
+                // 多态约定：{name}_type 必须与同名 {name}_id 成对出现，避免 order_type/status_type 等字典字段误判
+                if (preg_match('/_type$/', $column) && in_array(Str::substr($column, 0, -5).'_id', $columns)) {
+                    continue;
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     private function getTableIndexes(string $tableName): array
@@ -91,8 +172,11 @@ trait SchemaTrait
             $column['index'] = in_array($column['name'], $indexes);
             $column['camel_name'] = Str::camel($column['name']);
             $column['studly_name'] = Str::studly($column['name']);
-            $column['base_type'] = $callback($column['type_name']);
-            $column['swagger_type'] = $column['base_type'] === 'int' ? 'integer' : $column['base_type'];
+            // 类型映射回调可选（字典文档等场景不需要 base_type/swagger_type）
+            if ($callback !== null) {
+                $column['base_type'] = $callback($column['type_name']);
+                $column['swagger_type'] = $column['base_type'] === 'int' ? 'integer' : $column['base_type'];
+            }
             $columns[$key] = $column;
         }
 

@@ -10,7 +10,28 @@ use Juling\DevTools\Console\Commands;
 class DevToolsServiceProvider extends ServiceProvider
 {
     /**
-     * Bootstrap any package services.
+     * 注册的 Artisan 命令。
+     *
+     * @var list<class-string>
+     */
+    public const COMMANDS = [
+        Commands\GenClient::class,
+        Commands\GenController::class,
+        Commands\GenDict::class,
+        Commands\GenEntity::class,
+        Commands\GenEnums::class,
+        Commands\GenModel::class,
+        Commands\GenPagesRoute::class,
+        Commands\GenRepository::class,
+        Commands\GenRoute::class,
+        Commands\GenService::class,
+        Commands\GenTypescript::class,
+        Commands\GenView::class,
+        Commands\InitCommand::class,
+    ];
+
+    /**
+     * Register any package services.
      */
     public function register(): void
     {
@@ -27,20 +48,7 @@ class DevToolsServiceProvider extends ServiceProvider
         ]);
 
         if ($this->app->runningInConsole()) {
-            $this->commands([
-                Commands\GenController::class,
-                Commands\GenDict::class,
-                Commands\GenEntity::class,
-                Commands\GenEnums::class,
-                Commands\GenModel::class,
-                Commands\GenPagesRoute::class,
-                Commands\GenRepository::class,
-                Commands\GenRoute::class,
-                Commands\GenService::class,
-                Commands\GenTypescript::class,
-                Commands\GenView::class,
-                Commands\InitCommand::class,
-            ]);
+            $this->commands(self::COMMANDS);
         }
 
         if ($this->app->hasDebugModeEnabled()) {
