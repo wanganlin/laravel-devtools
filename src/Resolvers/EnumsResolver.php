@@ -15,7 +15,7 @@ class EnumsResolver extends Foundation
 
     public function build(DevConfig $devConfig, array $data): void
     {
-        if ($devConfig->getMultiModule()) {
+        if ($devConfig->getDomainMode()) {
             $groupName = $this->getTableGroupName($data['tableName']);
             $dist = $devConfig->getDist('app/Domains/'.$groupName.'/Enums');
             $data['namespace'] = "App\\Domains\\$groupName";

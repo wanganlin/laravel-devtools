@@ -13,10 +13,7 @@
     "autoload": {
         "psr-4": {
             "Juling\\DevTools\\": "src/"
-        },
-        "files": [
-            "src/Support/helpers.php"
-        ]
+        }
     },
     "extra": {
         "laravel": {

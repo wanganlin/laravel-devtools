@@ -12,12 +12,12 @@ class DevConfig
 
     public function __construct()
     {
-        $this->config = config('devtools');
+        $this->config = config('devtools', []);
     }
 
     public function getDist(string $moduleName = ''): string
     {
-        $dist = Str::rtrim($this->config['dist'], '/');
+        $dist = Str::rtrim($this->config['dist'] ?? base_path(), '/');
         if (! empty($moduleName)) {
             $dist .= '/'.$moduleName;
         }
@@ -25,19 +25,22 @@ class DevConfig
         return $dist;
     }
 
-    public function getMultiModule(): bool
+    /**
+     * 是否启用领域模块模式（app/Domains/{Group}/... 分层结构）
+     */
+    public function getDomainMode(): bool
     {
-        return $this->config['domain_mode'];
+        return (bool) ($this->config['domain_mode'] ?? false);
     }
 
     public function getIgnoreTables(): array
     {
-        return $this->config['exclude_tables'];
+        return $this->config['exclude_tables'] ?? [];
     }
 
     public function getIgnoreColumns(string $tableName = ''): array
     {
-        $ignoreColumns = $this->config['exclude_columns'];
+        $ignoreColumns = $this->config['exclude_columns'] ?? [];
 
         $columns = array_filter($ignoreColumns, function ($v, $k) {
             return is_int($k);
@@ -52,6 +55,6 @@ class DevConfig
 
     public function getIgnoreControllers(): array
     {
-        return $this->config['exclude_controllers'];
+        return $this->config['exclude_controllers'] ?? [];
     }
 }

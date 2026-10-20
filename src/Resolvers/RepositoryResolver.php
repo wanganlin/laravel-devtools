@@ -14,7 +14,7 @@ class RepositoryResolver extends Foundation
 
     public function build(DevConfig $devConfig, array $data): void
     {
-        if ($devConfig->getMultiModule()) {
+        if ($devConfig->getDomainMode()) {
             $groupName = $this->getTableGroupName($data['tableName']);
             $dist = $devConfig->getDist('app/Domains/'.$groupName.'/Repositories');
             $data['namespace'] = "App\\Domains\\$groupName";

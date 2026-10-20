@@ -44,10 +44,14 @@ class RouteResolver extends Foundation
     {
         $routes = [];
 
-        $ignoreControllers = config('devtools.exclude_controllers');
+        $ignoreControllers = config('devtools.exclude_controllers', []);
         foreach ($files as $file) {
             $file = str_replace('/', '\\', $file);
             preg_match('/(app\\\\.+?\\\\(\w+)Controller)\.php/', $file, $matches);
+            // 非 app 下的控制器（如 vendor 中间产物）跳过，避免 $matches[2] 未定义
+            if (empty($matches[2])) {
+                continue;
+            }
             if (! in_array(Str::studly($matches[2]), $ignoreControllers)) {
                 $class = ucfirst($matches[1]);
                 $classRoutes = $this->reflectionRoutes($class);

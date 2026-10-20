@@ -22,7 +22,7 @@ class GenPagesRoute extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Generate view routes for resources/views/pages';
 
     /**
      * Execute the console command.

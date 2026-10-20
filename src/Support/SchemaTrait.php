@@ -225,7 +225,7 @@ trait SchemaTrait
                 'className' => Str::studly($singularTableName),
                 'camelName' => Str::camel($singularTableName),
                 'snakeName' => Str::snake($singularTableName),
-                'tableComment' => StrHelper::rtrim($table['comment'], '表'),
+                'tableComment' => Str::rtrim($table['comment'], '表'),
             ];
         }
 

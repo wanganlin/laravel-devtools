@@ -33,7 +33,7 @@ class ControllerResolver extends Foundation
         $groupName = $this->getTableGroupName(Str::snake($className));
 
         $devConfig = new DevConfig;
-        if ($devConfig->getMultiModule()) {
+        if ($devConfig->getDomainMode()) {
             $dist = $devConfig->getDist('app/Domains/'.$groupName.'/Controllers');
             $namespace = "App\\Domains\\$groupName";
             $entityNamespace = "App\\Domains\\$groupName\\Entities";
@@ -132,7 +132,7 @@ class ControllerResolver extends Foundation
     private function writeRequest(string $className, string $suffix, array $data, string $outDir): void
     {
         $devConfig = new DevConfig;
-        if ($devConfig->getMultiModule()) {
+        if ($devConfig->getDomainMode()) {
             $groupName = $this->getTableGroupName(Str::snake($className));
             $dist = $devConfig->getDist('app/Domains/'.$groupName.'/Requests/'.$className);
             $namespace = "App\\Domains\\$groupName";
@@ -153,7 +153,7 @@ class ControllerResolver extends Foundation
     private function responseTpl(string $className, array $columns, array $indexes, string $outDir): void
     {
         $devConfig = new DevConfig;
-        if ($devConfig->getMultiModule()) {
+        if ($devConfig->getDomainMode()) {
             $groupName = $this->getTableGroupName(Str::snake($className));
             $dist = $devConfig->getDist('app/Domains/'.$groupName.'/Responses/'.$className);
             $namespace = "App\\Domains\\$groupName";
