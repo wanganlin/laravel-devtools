@@ -16,7 +16,7 @@ class GenRepository extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:dao {--prefix=} {--table=}';
+    protected $signature = 'gen:dao {--prefix=} {--table=} {--force}';
 
     /**
      * The console command description.

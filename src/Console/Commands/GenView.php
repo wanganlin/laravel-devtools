@@ -16,7 +16,7 @@ class GenView extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:view {--prefix=} {--table=}';
+    protected $signature = 'gen:view {--prefix=} {--table=} {--force}';
 
     /**
      * The console command description.

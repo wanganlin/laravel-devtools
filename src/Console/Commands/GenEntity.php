@@ -16,7 +16,7 @@ class GenEntity extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:entity {--prefix=} {--table=}';
+    protected $signature = 'gen:entity {--prefix=} {--table=} {--force}';
 
     /**
      * The console command description.

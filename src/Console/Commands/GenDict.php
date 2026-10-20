@@ -16,7 +16,7 @@ class GenDict extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:dict {--prefix=} {--table=}';
+    protected $signature = 'gen:dict {--prefix=} {--table=} {--force}';
 
     /**
      * The console command description.

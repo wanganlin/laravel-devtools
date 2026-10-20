@@ -16,7 +16,7 @@ class GenService extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:service {--prefix=} {--table=}';
+    protected $signature = 'gen:service {--prefix=} {--table=} {--force}';
 
     /**
      * The console command description.

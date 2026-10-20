@@ -62,7 +62,7 @@ class ControllerResolver extends Foundation
             'comment' => $comment,
         ], deleteCachedView: true);
 
-        file_put_contents($dist.'/'.$className.'Controller.php', "<?php\n\n".$content);
+        $this->writeFile($dist.'/'.$className.'Controller.php', "<?php\n\n".$content);
     }
 
     private function queryRequestTpl(string $className, array $columns, array $indexes, string $outDir): void
@@ -103,9 +103,10 @@ class ControllerResolver extends Foundation
 
     private function updateRequest(string $className, array $columns, array $indexes, string $outDir): void
     {
-        $this->ignoreFields = array_slice($this->ignoreFields, 1);
+        // update 允许传 id 定位记录，其余忽略字段同 create；不修改实例属性以保证可重入
+        $ignoreFields = array_slice($this->ignoreFields, 1);
         foreach ($columns as $key => $column) {
-            if (in_array($column['name'], $this->ignoreFields)) {
+            if (in_array($column['name'], $ignoreFields)) {
                 unset($columns[$key]);
             }
         }
@@ -146,7 +147,7 @@ class ControllerResolver extends Foundation
         ], $data);
 
         $content = Blade::render(file_get_contents(__DIR__.'/stubs/request/'.Str::snake($suffix).'.stub'), $data, deleteCachedView: true);
-        file_put_contents($dist.'/'.$className.$suffix.'.php', "<?php\n\n".$content);
+        $this->writeFile($dist.'/'.$className.$suffix.'.php', "<?php\n\n".$content);
     }
 
     private function responseTpl(string $className, array $columns, array $indexes, string $outDir): void
@@ -166,13 +167,13 @@ class ControllerResolver extends Foundation
             'namespace' => $namespace,
             'className' => $className,
         ], deleteCachedView: true);
-        file_put_contents($dist.'/'.$className.'QueryResponse.php', "<?php\n\n".$content);
+        $this->writeFile($dist.'/'.$className.'QueryResponse.php', "<?php\n\n".$content);
 
         $content = Blade::render(file_get_contents(__DIR__.'/stubs/response/destroy.stub'), [
             'namespace' => $namespace,
             'className' => $className,
         ], deleteCachedView: true);
-        file_put_contents($dist.'/'.$className.'DestroyResponse.php', "<?php\n\n".$content);
+        $this->writeFile($dist.'/'.$className.'DestroyResponse.php', "<?php\n\n".$content);
 
         $ignoreFields = ['deleted_time', 'password', 'password_salt'];
         foreach ($columns as $key => $column) {
@@ -186,6 +187,6 @@ class ControllerResolver extends Foundation
             'className' => $className,
             'tableColumns' => $columns,
         ], deleteCachedView: true);
-        file_put_contents($dist.'/'.$className.'Response.php', "<?php\n\n".$content);
+        $this->writeFile($dist.'/'.$className.'Response.php', "<?php\n\n".$content);
     }
 }

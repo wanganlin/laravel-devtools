@@ -24,13 +24,7 @@ class ViewResolver extends Foundation
 
     private function tpl(DevConfig $devConfig, string $tableName, string $name, string $comment, array $columns, string $view): void
     {
-        $outDir = $this->getTableGroupName($tableName);
-        $subDir = Str::substr($tableName, Str::length($outDir) + 1);
-        if (! empty($subDir)) {
-            $outDir = Str::camel($outDir).'/'.Str::camel($subDir);
-        } else {
-            $outDir = Str::camel($outDir);
-        }
+        $outDir = $this->getOutputDir($tableName);
 
         $dist = $devConfig->getDist('resources/vue/src/views/'.$outDir);
         $this->ensureDirectoryExists($dist);
@@ -44,6 +38,24 @@ class ViewResolver extends Foundation
             'comment' => $comment,
             'columns' => $columns,
         ]);
-        file_put_contents($dist.'/'.$name.'View.vue', $content);
+        $this->writeFile($dist.'/'.$name.'View.vue', $content);
+    }
+
+    /**
+     * 计算视图输出目录：组目录/子目录（如 categories_tags => category/tags）
+     *
+     * 按第一个下划线定位切分，不能用组名长度切割——categories 等不规则复数的
+     * 单/复数长度不同（categories_tags 若按长度切会得到 sTags）
+     */
+    private function getOutputDir(string $tableName): string
+    {
+        $groupName = Str::camel($this->getTableGroupName($tableName));
+
+        $pos = strpos($tableName, '_');
+        if ($pos === false) {
+            return $groupName;
+        }
+
+        return $groupName.'/'.Str::camel(Str::substr($tableName, $pos + 1));
     }
 }

@@ -7,6 +7,7 @@ namespace Juling\DevTools\Resolvers;
 use Illuminate\Support\Str;
 use Juling\DevTools\Support\DevConfig;
 use Juling\DevTools\Support\SchemaTrait;
+use RuntimeException;
 
 class ClientResolver extends Foundation
 {
@@ -16,9 +17,11 @@ class ClientResolver extends Foundation
 
     public function build(DevConfig $devConfig, array $data): void
     {
+        // 服务名取宿主应用根目录名（原 dirname(__DIR__, 5) 依赖 vendor 安装深度，path 部署等方式下会出错）
+        $serviceName = Str::studly(basename(base_path()));
+
         $files = glob(base_path('docs/api/*.json'));
         foreach ($files as $file) {
-            $serviceName = Str::studly(basename(dirname(__DIR__, 5)));
             $moduleName = Str::studly(basename($file, '.json'));
 
             $this->dist = $devConfig->getDist('resources/client/src/'.$moduleName);
@@ -188,7 +191,7 @@ EOF;
                     continue;
                 }
                 if (! isset($schema['properties'])) {
-                    exit($moduleName.' 模块中的 '.$type.' 缺少 properties 参数');
+                    throw new RuntimeException($moduleName.' 模块中的 '.$type.' 缺少 properties 参数');
                 }
                 $content .= $this->genModel($serviceName, $moduleName, $type, $schema);
             }
@@ -239,7 +242,7 @@ EOF;
             } elseif (isset($property['$ref'])) {
                 $type = 'array';
             } else {
-                exit($modelName.' 对象 '.var_export($property, true).' 缺失类型');
+                throw new RuntimeException($modelName.' 对象 '.var_export($property, true).' 缺失类型');
             }
 
             $description = isset($property['description']) ? ' // '.$property['description'] : '';

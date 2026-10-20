@@ -8,15 +8,21 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Juling\DevTools\Support\DevConfig;
 use Juling\DevTools\Support\SchemaTrait;
+use RuntimeException;
 
 class TypescriptResolver extends Foundation
 {
     use SchemaTrait;
 
+    private string $tsDist;
+
     public function build(DevConfig $devConfig, array $data): void
     {
-        $dist = $devConfig->getDist('resources/ts');
-        $this->deleteDirectories($dist);
+        $this->tsDist = $devConfig->getDist('resources/ts');
+
+        // 聚合输出，全量重建；仅清理生成器管理的子目录，不影响 ts 目录下的其他文件
+        $this->deleteDirectories($this->tsDist.'/services');
+        $this->deleteDirectories($this->tsDist.'/types');
 
         $files = glob(base_path('docs/api/*.json'));
         foreach ($files as $file) {
@@ -135,7 +141,7 @@ export const {$service}Service = ({$requestParams}): Promise{$response} => {
                     continue;
                 }
 
-                $servicePath = resource_path('ts/services/'.$module);
+                $servicePath = $this->tsDist.'/services/'.$module;
                 $this->ensureDirectoryExists($servicePath);
 
                 $content = "import request from '@/utils/request'\n";
@@ -159,14 +165,14 @@ export const {$service}Service = ({$requestParams}): Promise{$response} => {
                     continue;
                 }
                 if (! isset($schema['properties'])) {
-                    exit($module.' 模块中的 '.$type.' 缺少 properties 参数');
+                    throw new RuntimeException($module.' 模块中的 '.$type.' 缺少 properties 参数');
                 }
                 $contents[$group] .= $this->genTypeSchemas($type, $schema);
             }
         }
 
         foreach ($contents as $group => $content) {
-            $typePath = resource_path('ts/types/'.$module);
+            $typePath = $this->tsDist.'/types/'.$module;
             $this->ensureDirectoryExists($typePath);
             file_put_contents($typePath.'/'.$group.'.d.ts', $content);
         }
@@ -197,7 +203,7 @@ export const {$service}Service = ({$requestParams}): Promise{$response} => {
             } elseif (isset($property['$ref'])) {
                 $type = 'I'.basename($property['$ref']);
             } else {
-                exit($interface.' 对象 '.var_export($property, true).' 缺失类型');
+                throw new RuntimeException($interface.' 对象 '.var_export($property, true).' 缺失类型');
             }
 
             $description = isset($property['description']) ? ' // '.$property['description'] : '';

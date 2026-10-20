@@ -11,6 +11,7 @@ use Juling\DevTools\Support\SchemaTrait;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use RuntimeException;
 
 class RouteResolver extends Foundation
 {
@@ -74,7 +75,7 @@ class RouteResolver extends Foundation
             if (isset($methodAttributes[0])) {
                 $methodAttribute = $methodAttributes[0];
                 if (! isset($methodAttribute->getArguments()['path'])) {
-                    exit('Route path not found:'.$class.'@'.$method->name);
+                    throw new RuntimeException('Route path not found: '.$class.'@'.$method->name);
                 }
 
                 $httpMethod = Str::lower(Arr::last(explode('\\', $methodAttribute->getName())));

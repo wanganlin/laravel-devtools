@@ -20,7 +20,7 @@ class DictResolver extends Foundation
         $columns = $this->getTableColumns($data['tableName']);
         $content .= $this->getContent($columns);
 
-        file_put_contents($dist.'/'.$data['tableName'].'.md', $content);
+        $this->writeFile($dist.'/'.$data['tableName'].'.md', $content);
     }
 
     public function getContent($columns): string

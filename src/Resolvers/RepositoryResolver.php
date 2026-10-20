@@ -26,6 +26,6 @@ class RepositoryResolver extends Foundation
 
         $tpl = file_get_contents(__DIR__.'/stubs/repository/repository.stub');
         $content = Blade::render($tpl, $data, deleteCachedView: true);
-        file_put_contents($dist.'/'.$data['className'].'Repository.php', "<?php\n\n".$content);
+        $this->writeFile($dist.'/'.$data['className'].'Repository.php', "<?php\n\n".$content);
     }
 }

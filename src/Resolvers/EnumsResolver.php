@@ -107,7 +107,7 @@ EOF;
 
         $tpl = file_get_contents(__DIR__.'/stubs/enums/enums.stub');
         $content = Blade::render($tpl, $data, deleteCachedView: true);
-        file_put_contents($dist.'/'.$data['className'].'Enum.php', "<?php\n\n".$content);
+        $this->writeFile($dist.'/'.$data['className'].'Enum.php', "<?php\n\n".$content);
     }
 
     /**

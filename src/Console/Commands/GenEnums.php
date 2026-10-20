@@ -16,7 +16,7 @@ class GenEnums extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:enums {--prefix=} {--table=}';
+    protected $signature = 'gen:enums {--prefix=} {--table=} {--force}';
 
     /**
      * The console command description.

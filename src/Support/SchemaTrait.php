@@ -19,9 +19,14 @@ trait SchemaTrait
     {
         $this->ignoreTables = array_merge($this->ignoreTables, config('devtools.exclude_tables', []));
 
+        $database = Schema::getConnection()->getDatabaseName();
         $tables = Schema::getTables();
+
+        // 快照当前库的全部表名，供 isPivotTable 复用（避免逐表重复查询全表清单）
+        $existingTables = array_flip(array_column(array_filter($tables, fn ($table) => $table['schema'] === $database), 'name'));
+
         foreach ($tables as $key => $table) {
-            if (in_array($table['name'], $this->ignoreTables) || $table['schema'] !== config('database.connections.mysql.database')) {
+            if (in_array($table['name'], $this->ignoreTables) || $table['schema'] !== $database) {
                 unset($tables[$key]);
             }
 
@@ -40,7 +45,7 @@ trait SchemaTrait
             }
 
             // 批量生成时跳过中间关联表（中间表由 belongsToMany 关联维护，无需生成 entity/model/service 等业务代码）
-            if (empty($tableName) && isset($tables[$key]) && $this->isPivotTable($table['name'])) {
+            if (empty($tableName) && isset($tables[$key]) && $this->isPivotTable($table['name'], $existingTables)) {
                 unset($tables[$key]);
             }
         }
@@ -61,7 +66,7 @@ trait SchemaTrait
      * 3. 联合主键，且除主键、时间戳列外全部为 *_id 列或成对的多态 *_type/*_id 列
      *    （结构特征不依赖命名与外键约束，覆盖 taggables 多态中间表、admin_role_permissions 三向关联表）。
      */
-    private function isPivotTable(string $tableName): bool
+    private function isPivotTable(string $tableName, ?array $existingTables = null): bool
     {
         $allowColumns = ['id', 'created_at', 'updated_at', 'deleted_at'];
         $columns = array_column(Schema::getColumns($tableName), 'name');
@@ -73,6 +78,11 @@ trait SchemaTrait
             if (empty(array_diff($columns, array_merge($allowColumns, $fkColumns)))) {
                 return true;
             }
+        }
+
+        if ($existingTables === null) {
+            $database = Schema::getConnection()->getDatabaseName();
+            $existingTables = array_flip(array_column(array_filter(Schema::getTables(), fn ($table) => $table['schema'] === $database), 'name'));
         }
 
         $parts = explode('_', $tableName);
@@ -88,10 +98,7 @@ trait SchemaTrait
                 continue;
             }
 
-            $database = config('database.connections.mysql.database');
-            $tables = array_flip(array_column(array_filter(Schema::getTables(), fn ($table) => $table['schema'] === $database), 'name'));
-
-            if (isset($tables[Str::plural($left)], $tables[Str::plural($right)])) {
+            if (isset($existingTables[Str::plural($left)], $existingTables[Str::plural($right)])) {
                 return true;
             }
         }
@@ -129,9 +136,10 @@ trait SchemaTrait
         $indexes = Schema::getIndexes($tableName);
 
         $columns = [];
-        foreach ($indexes as $key => $item) {
+        foreach ($indexes as $item) {
+            // 复合索引按列展开（每列继承所属索引的 unique/primary 属性），避免仅保留最后一列
             foreach ($item['columns'] as $column) {
-                $columns[$key] = [
+                $columns[] = [
                     'name' => $column,
                     'camel_name' => Str::camel($column),
                     'studly_name' => Str::studly($column),
@@ -224,7 +232,12 @@ trait SchemaTrait
         $resolver = '\\'.$namespace.'\\Resolvers\\'.Str::studly($genType).'Resolver';
         if (method_exists($resolver, 'build')) {
             $devConfig = new DevConfig;
-            (new $resolver)->build($devConfig, $table);
+            $instance = new $resolver;
+            // 命令上下文注入 --force 选项（默认跳过已存在文件）
+            if (method_exists($this, 'option')) {
+                $instance->force = (bool) $this->option('force');
+            }
+            $instance->build($devConfig, $table);
         }
     }
 

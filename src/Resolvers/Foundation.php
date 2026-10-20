@@ -6,6 +6,25 @@ namespace Juling\DevTools\Resolvers;
 
 abstract class Foundation
 {
+    /**
+     * 是否强制覆盖已存在的文件（由命令行 --force 选项注入）
+     */
+    public bool $force = false;
+
+    /**
+     * 写入生成文件：默认跳过已存在文件以保护手写代码，force 时覆盖
+     */
+    protected function writeFile(string $path, string $content): bool
+    {
+        if (! $this->force && is_file($path)) {
+            return false;
+        }
+
+        file_put_contents($path, $content);
+
+        return true;
+    }
+
     public function getFieldType(string $fieldType): string
     {
         preg_match('/(\w+)\(/', $fieldType, $m);

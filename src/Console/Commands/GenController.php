@@ -16,7 +16,7 @@ class GenController extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:controller {--prefix=} {--table=}';
+    protected $signature = 'gen:controller {--prefix=} {--table=} {--force}';
 
     /**
      * The console command description.

@@ -16,7 +16,7 @@ class GenModel extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:model {--prefix=} {--table=}';
+    protected $signature = 'gen:model {--prefix=} {--table=} {--force}';
 
     /**
      * The console command description.
