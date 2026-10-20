@@ -47,7 +47,7 @@ class EnumsResolver extends Foundation
      */
     private function parseComment(string $comment): ?array
     {
-        $comment = Str::replace(['：', '，'], [':', ','], $comment);
+        $comment = Str::replace(['：', '，', '='], [':', ',', '-'], $comment);
 
         $split = explode(':', $comment, 2);
         if (count($split) < 2) {
@@ -87,6 +87,7 @@ class EnumsResolver extends Foundation
         $enums = '';
         foreach ($enumsOptions as [$value, $label]) {
             $caseName = $isInt ? $enumsClass.$value : $this->toCaseName($enumsClass, $value);
+            $caseName = str_replace(" ", "", $caseName);
             $caseValue = $isInt ? $value : "'".str_replace("'", "\\'", $value)."'";
             $enums .= <<<EOF
 
