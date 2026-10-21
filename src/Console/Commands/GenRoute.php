@@ -16,7 +16,7 @@ class GenRoute extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:route';
+    protected $signature = 'gen:route {--force}';
 
     /**
      * The console command description.

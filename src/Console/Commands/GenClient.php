@@ -16,7 +16,7 @@ class GenClient extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:client';
+    protected $signature = 'gen:client {--force}';
 
     /**
      * The console command description.
@@ -24,11 +24,6 @@ class GenClient extends Command
      * @var string
      */
     protected $description = 'Generate service client';
-
-    /**
-     * 输出文件的目录
-     */
-    private string $dist;
 
     /**
      * Execute the console command.

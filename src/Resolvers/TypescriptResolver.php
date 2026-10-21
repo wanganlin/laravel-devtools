@@ -18,11 +18,7 @@ class TypescriptResolver extends Foundation
 
     public function build(DevConfig $devConfig, array $data): void
     {
-        $this->tsDist = $devConfig->getDist('resources/ts');
-
-        // 聚合输出，全量重建；仅清理生成器管理的子目录，不影响 ts 目录下的其他文件
-        $this->deleteDirectories($this->tsDist.'/services');
-        $this->deleteDirectories($this->tsDist.'/types');
+        $this->tsDist = $devConfig->getDist('packages');
 
         $files = glob(base_path('docs/api/*.json'));
         foreach ($files as $file) {
@@ -37,12 +33,16 @@ class TypescriptResolver extends Foundation
         if (isset($data['paths'])) {
             $groupApis = []; // API接口
             $groupTypes = []; // 参数类型
+            $groupHelpers = []; // 各分组用到的请求助手函数
             foreach ($data['paths'] as $path => $item) {
-                $requestParams = '';
-                $requestBody = '';
                 $group = Arr::first(explode('/', ltrim($path, '/')));
 
                 foreach ($item as $method => $val) {
+                    // 助手函数位置参数：$dataArg 为请求体（第二参），$configParts 为 query/headers（归入 config）
+                    $requestParams = '';
+                    $dataArg = '';
+                    $configParts = [];
+
                     // query 参数
                     if (isset($val['parameters'])) {
                         $parameters = [];
@@ -60,7 +60,7 @@ class TypescriptResolver extends Foundation
                         }
 
                         $requestParams = implode(', ', $params);
-                        $requestBody = ",\n        params: {".implode(', ', array_keys($parameters)).'}';
+                        $configParts[] = 'params: { '.implode(', ', array_keys($parameters)).' }';
                     }
 
                     // formData 参数
@@ -72,17 +72,17 @@ class TypescriptResolver extends Foundation
                             $groupTypes[$group][] = $interface;
 
                             if (empty($requestParams)) {
-                                $requestParams .= 'formData: '.$interface;
+                                $requestParams .= 'data: '.$interface;
                             } else {
-                                $requestParams .= ', formData: '.$interface;
+                                $requestParams .= ', data: '.$interface;
                             }
 
-                            $requestBody .= ",\n        data: formData";
+                            $dataArg = 'data';
                         }
                     } elseif (isset($val['requestBody']['content']['application/json']['schema']['items']['type'])) {
                         $request = $val['requestBody']['content']['application/json']['schema']['items']['type'];
                         $requestParams = 'id: number[]';
-                        $requestBody = ",\n        params: {id}";
+                        $configParts[] = 'params: { id }';
                     }
 
                     // 文件上传
@@ -94,19 +94,27 @@ class TypescriptResolver extends Foundation
                             $groupTypes[$group][] = $interface;
 
                             if (empty($requestParams)) {
-                                $requestParams .= 'formData: '.$interface;
+                                $requestParams .= 'data: '.$interface;
                             } else {
-                                $requestParams .= ', formData: '.$interface;
+                                $requestParams .= ', data: '.$interface;
                             }
 
-                            $requestBody .= ",\n        data: formData";
-                            $requestBody .= ",\n        headers: { 'Content-Type': 'multipart/form-data' }";
+                            $dataArg = 'data';
+                            $configParts[] = "headers: { 'Content-Type': 'multipart/form-data' }";
                         }
                     }
 
                     $response = '<any>';
                     if (isset($val['responses'][200]['content']['application/json']['schema']['$ref'])) {
                         $response = $val['responses'][200]['content']['application/json']['schema']['$ref'];
+                        preg_match('/\/components\/schemas\/(\w+)/', $response, $m);
+                        if (isset($m[1])) {
+                            $interface = 'I'.$m[1];
+                            $groupTypes[$group][] = $interface;
+                            $response = '<'.$interface.'>';
+                        }
+                    } elseif (isset($val['responses'][200]['content']['application/json']['schema']['properties']['data']['$ref'])) {
+                        $response = $val['responses'][200]['content']['application/json']['schema']['properties']['data']['$ref'];
                         preg_match('/\/components\/schemas\/(\w+)/', $response, $m);
                         if (isset($m[1])) {
                             $interface = 'I'.$m[1];
@@ -126,12 +134,20 @@ class TypescriptResolver extends Foundation
                     $service = Str::camel(Str::replace('/', ' ', $path));
                     $url = (Str::substr($path, 0, 1) === '/') ? $module.$path : $module.'/'.$path;
 
-                    $groupApis[$group][] = "// [{$val['tags'][0]}] {$val['summary']}
-export const {$service}Service = ({$requestParams}): Promise{$response} => {
-    return request({
-        url: '{$url}',
-        method: '{$method}'{$requestBody}
-    })
+                    $helper = match ($method) {
+                        'get' => 'get', 'post' => 'post', 'put' => 'put', 'delete' => 'del',
+                        default => throw new RuntimeException("不支持的请求方法：{$method}"),
+                    };
+                    $groupHelpers[$group][] = $helper;
+
+                    $args = "'{$url}'".($dataArg !== '' ? ", {$dataArg}" : '');
+                    if ($configParts !== []) {
+                        $args .= ', { '.implode(', ', $configParts).' }';
+                    }
+
+                    $groupApis[$group][] = "/** [{$val['tags'][0]}] {$val['summary']} */
+export function {$service}Api({$requestParams}): Promise{$response} {
+  return {$helper}{$response}({$args})
 }\n";
                 }
             }
@@ -141,13 +157,14 @@ export const {$service}Service = ({$requestParams}): Promise{$response} => {
                     continue;
                 }
 
-                $servicePath = $this->tsDist.'/services/'.$module;
+                $servicePath = $this->tsDist.'/'.$module.'/src/api';
                 $this->ensureDirectoryExists($servicePath);
 
-                $content = "import request from '@/utils/request'\n";
+                $helpers = array_unique($groupHelpers[$group] ?? []);
+                $content = 'import { '.implode(', ', $helpers)." } from '@/utils/request'\n";
                 if (isset($groupTypes[$group])) {
                     $this->genTypes($data, $module, $group, $groupTypes[$group]);
-                    $content .= 'import type { '.implode(",\n", array_unique($groupTypes[$group]))." } from '@/types/{$module}/{$group}'\n\n";
+                    $content .= 'import type { '.implode(', ', array_unique($groupTypes[$group]))." } from '@/types/{$group}'\n\n";
                 }
                 $content .= implode("\n", $apis);
 
@@ -172,7 +189,7 @@ export const {$service}Service = ({$requestParams}): Promise{$response} => {
         }
 
         foreach ($contents as $group => $content) {
-            $typePath = $this->tsDist.'/types/'.$module;
+            $typePath = $this->tsDist.'/'.$module.'/src/types';
             $this->ensureDirectoryExists($typePath);
             file_put_contents($typePath.'/'.$group.'.d.ts', $content);
         }

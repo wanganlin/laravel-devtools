@@ -26,7 +26,7 @@ class ViewResolver extends Foundation
     {
         $outDir = $this->getOutputDir($tableName);
 
-        $dist = $devConfig->getDist('resources/vue/src/views/'.$outDir);
+        $dist = $devConfig->getDist('packages/admin/src/views/'.$outDir);
         $this->ensureDirectoryExists($dist);
 
         $primaryKey = $this->getTablePrimaryKey($tableName);

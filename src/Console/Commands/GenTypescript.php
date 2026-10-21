@@ -16,7 +16,7 @@ class GenTypescript extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:typescript';
+    protected $signature = 'gen:typescript {--force}';
 
     /**
      * The console command description.
