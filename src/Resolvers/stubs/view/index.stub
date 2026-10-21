@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {reactive, ref, onActivated, nextTick} from "vue"
-import { message, Modal } from 'ant-design-vue';
-import { {{$camelName}}QueryService, {{$camelName}}DestroyService } from '@/services/admin/{{$camelName}}'
-import type { I{{$studlyName}}QueryRequest, I{{$studlyName}}Response} from '@/types/admin/{{$camelName}}'
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { {{$camelName}}QueryService, {{$camelName}}DestroyService } from '@/api/{{$camelName}}'
+import type { I{{$studlyName}}QueryRequest, I{{$studlyName}}Response} from '@/types/{{$camelName}}'
 import {isAuth} from '@/utils'
 import Upsert from './UpsertView.vue'
 
@@ -54,18 +54,16 @@ const upsertHandle = (id?: number) => {
 // 删除
 const deleteHandle = (id?: number) => {
   const ids = id ? [id] : dataListSelections.value.map(item => item.{{$primaryKey}})
-  Modal.confirm({
-    title: '提示',
-    content:  `确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?`,
-    okText: '确定',
-    cancelText: '取消',
-    onOk: () => {
-      {{$camelName}}DestroyService(ids).then(() => {
-        message.success('操作成功')
-        getDataList()
-      })
-    }
-  })
+  ElMessageBox.confirm(`确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?`, '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    {{$camelName}}DestroyService(ids).then(() => {
+      ElMessage.success('操作成功')
+      getDataList()
+    })
+  }).catch(() => {})
 }
 
 onActivated(() => {
@@ -75,58 +73,56 @@ onActivated(() => {
 
 <template>
     <div class="mod-config">
-    <a-form :inline="true" :model="dataForm" @keyup.enter="getDataList()">
-      <a-form-item>
-        <a-input v-model="dataForm.key" placeholder="参数名" clearable></a-input>
-      </a-form-item>
-      <a-form-item>
-        <a-button @click="getDataList()">查询</a-button>
-        <a-button v-if="isAuth('${moduleName}:${pathName}:save')" type="primary" @click="upsertHandle()">新增</a-button>
-        <a-button v-if="isAuth('${moduleName}:${pathName}:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</a-button>
-      </a-form-item>
-    </a-form>
-    <a-table
+    <el-form :inline="true" :model="dataForm" @keyup.enter="getDataList()">
+      <el-form-item>
+        <el-input v-model="dataForm.key" placeholder="参数名" clearable></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="getDataList()">查询</el-button>
+        <el-button v-if="isAuth('${moduleName}:${pathName}:save')" type="primary" @click="upsertHandle()">新增</el-button>
+        <el-button v-if="isAuth('${moduleName}:${pathName}:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
+      </el-form-item>
+    </el-form>
+    <el-table
       :data="dataList"
       border
-      :loading="dataListLoading"
+      v-loading="dataListLoading"
       @selection-change="selectionChangeHandle"
       style="width: 100%;">
-      <a-table-column
+      <el-table-column
         type="selection"
         header-align="center"
         align="center"
         width="50">
-      </a-table-column>
+      </el-table-column>
 @foreach($columns as $column)
-      <a-table-column
+      <el-table-column
         prop="{{ $column['camel_name'] }}"
         header-align="center"
         align="center"
         label="{{ $column['comment'] }}">
-      </a-table-column>
+      </el-table-column>
 @endforeach
-      <a-table-column
+      <el-table-column
         fixed="right"
         header-align="center"
         align="center"
         width="150"
         label="操作">
         <template #default="{ row }">
-          <a-button type="text" size="small" @click="upsertHandle(row.{{$primaryKey}})">修改</a-button>
-          <a-button type="text" size="small" @click="deleteHandle(row.{{$primaryKey}})">删除</a-button>
+          <el-button link type="primary" size="small" @click="upsertHandle(row.{{$primaryKey}})">修改</el-button>
+          <el-button link type="primary" size="small" @click="deleteHandle(row.{{$primaryKey}})">删除</el-button>
         </template>
-      </a-table-column>
-    </a-table>
-    <a-pagination
-      :current="pageIndex"
+      </el-table-column>
+    </el-table>
+    <el-pagination
+      :current-page="pageIndex"
       :page-size="pageSize"
       :total="totalPage"
-      :show-size-changer="true"
       :page-sizes="[10, 20, 50, 100]"
-      show-less-items
+      layout="total, sizes, prev, pager, next, jumper"
       @size-change="sizeChangeHandle"
-      @change="currentChangeHandle"
-      @showSizeChange="sizeChangeHandle"
+      @current-change="currentChangeHandle"
     />
     <!-- 弹窗, 新增 / 修改 -->
     <upsert v-if="upsertVisible" ref="upsertRef" @refreshDataList="getDataList"></upsert>

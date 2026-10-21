@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {reactive, ref, nextTick} from "vue"
-import { message as messageApi } from 'ant-design-vue';
-import { {{$camelName}}StoreService, {{$camelName}}ShowService, {{$camelName}}UpdateService } from '@/services/admin/{{$camelName}}'
-import type { I{{$studlyName}}UpsertRequest } from '@/types/admin/{{$camelName}}'
+import { ElMessage } from 'element-plus';
+import { {{$camelName}}StoreService, {{$camelName}}ShowService, {{$camelName}}UpdateService } from '@/api/{{$camelName}}'
+import type { I{{$studlyName}}UpsertRequest } from '@/types/{{$camelName}}'
 
 const dataFormRef = ref()
 const visible = ref(false)
@@ -68,11 +68,11 @@ const dataFormSubmit = () => {
 
       if (dataForm.{{ $primaryKey }}) {
         {{$camelName}}UpdateService(dataForm.{{ $primaryKey }}, formData).then(() => {
-          messageApi.success(messageBox.message)
+          ElMessage.success(messageBox.message)
         })
       } else{
         {{$camelName}}StoreService(formData).then(() => {
-          messageApi.success(messageBox.message)
+          ElMessage.success(messageBox.message)
         })
       }
     }
@@ -85,24 +85,24 @@ const emit = defineEmits(['refreshDataList']);
 </script>
 
 <template>
-    <a-modal
+    <el-dialog
     :title="!dataForm.{{ $primaryKey }} ? '新增' : '修改'"
-    :visible="visible"
-    :footer="null"
-    @cancel="visible = false"
+    v-model="visible"
     >
-    <a-form :model="dataForm" :rules="dataRule" ref="dataFormRef" @keyup.enter="dataFormSubmit()" layout="vertical" label-width="80px">
+    <el-form :model="dataForm" :rules="dataRule" ref="dataFormRef" @keyup.enter="dataFormSubmit()" label-width="80px">
 @foreach($columns as $column)
-    <a-form-item label="{{ $column['comment'] }}" prop="{{ $column['camel_name'] }}">
-      <a-input v-model:value="dataForm.{{ $column['camel_name'] }}" placeholder="{{ $column['comment'] }}"></a-input>
-    </a-form-item>
+    <el-form-item label="{{ $column['comment'] }}" prop="{{ $column['camel_name'] }}">
+      <el-input v-model="dataForm.{{ $column['camel_name'] }}" placeholder="{{ $column['comment'] }}"></el-input>
+    </el-form-item>
 @endforeach
-    </a-form>
-    <span slot="footer" class="dialog-footer">
-      <a-button @click="visible = false">取消</a-button>
-      <a-button type="primary" @click="dataFormSubmit()">确定</a-button>
-    </span>
-  </a-modal>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="visible = false">取消</el-button>
+        <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>
