@@ -46,14 +46,14 @@ class RouteResolver extends Foundation
 
         $ignoreControllers = config('devtools.exclude_controllers', []);
         foreach ($files as $file) {
-            $file = str_replace('/', '\\', $file);
-            preg_match('/(app\\\\.+?\\\\(\w+)Controller)\.php/', $file, $matches);
-            // 非 app 下的控制器（如 vendor 中间产物）跳过，避免 $matches[2] 未定义
-            if (empty($matches[2])) {
+            $normalizedFile = str_replace('\\', '/', $file);
+            if (! preg_match('/(app\/.+?\/(\w+)Controller)\.php$/i', $normalizedFile, $matches)) {
                 continue;
             }
-            if (! in_array(Str::studly($matches[2]), $ignoreControllers)) {
-                $class = ucfirst($matches[1]);
+
+            if (! in_array(Str::studly($matches[2]), $ignoreControllers, true)) {
+                // 将相对路径转为标准的 PSR-4 命名空间类名（如 App\Domains\...\...Controller）
+                $class = str_replace('/', '\\', ucfirst($matches[1]));
                 $classRoutes = $this->reflectionRoutes($class);
                 $routes = array_merge($routes, $classRoutes);
             }
@@ -73,25 +73,30 @@ class RouteResolver extends Foundation
             return $item->class === $class;
         });
 
+        $validHttpMethods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head'];
         $routes = [];
         foreach ($methods as $method) {
-            $methodAttributes = $reflectionClass->getMethod($method->name)->getAttributes();
-            if (isset($methodAttributes[0])) {
-                $methodAttribute = $methodAttributes[0];
-                if (! isset($methodAttribute->getArguments()['path'])) {
-                    throw new RuntimeException('Route path not found: '.$class.'@'.$method->name);
+            foreach ($method->getAttributes() as $attribute) {
+                $shortName = Str::lower(Arr::last(explode('\\', $attribute->getName())));
+                if (! in_array($shortName, $validHttpMethods, true)) {
+                    continue;
                 }
 
-                $httpMethod = Str::lower(Arr::last(explode('\\', $methodAttribute->getName())));
-                $path = $methodAttribute->getArguments()['path'];
-                $summary = $methodAttribute->getArguments()['summary'];
+                $args = $attribute->getArguments();
+                $path = $args['path'] ?? ($args[0] ?? null);
+                if (empty($path)) {
+                    continue;
+                }
+
+                $summary = (string) ($args['summary'] ?? ($args['description'] ?? ''));
                 $routes[] = [
-                    'httpMethod' => $httpMethod,
-                    'path' => $path === '/' ? $path : ltrim($path, '/'),
+                    'httpMethod' => $shortName,
+                    'path' => $path === '/' ? $path : ltrim((string) $path, '/'),
                     'class' => $class,
                     'action' => $method->name,
                     'summary' => $summary,
                 ];
+                break; // 每个方法提取首个有效路由注解
             }
         }
 

@@ -26,17 +26,12 @@ class ModelResolver extends Foundation
 
         $data['primaryKey'] = $this->getTablePrimaryKey($data['tableName']);
         $data['tableColumns'] = $this->getTableColumns($data['tableName'], fn ($fieldType) => $this->getFieldType($fieldType));
-        $data['softDelete'] = false;
+        $data['softDelete'] = in_array('deleted_at', array_column($data['tableColumns'], 'name'), true);
 
         $ignoreColumns = array_merge($devConfig->getIgnoreColumns($data['tableName']), [$data['primaryKey']]);
         foreach ($data['tableColumns'] as $key => $column) {
-            if (in_array($column['name'], $ignoreColumns)) {
+            if (in_array($column['name'], $ignoreColumns, true)) {
                 unset($data['tableColumns'][$key]);
-
-                continue;
-            }
-            if ($column['name'] === 'deleted_at') {
-                $data['softDelete'] = true;
             }
         }
 

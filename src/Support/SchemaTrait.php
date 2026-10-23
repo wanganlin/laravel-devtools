@@ -76,19 +76,33 @@ trait SchemaTrait
 
         $columns = [];
         foreach ($indexes as $item) {
-            // 复合索引按列展开（每列继承所属索引的 unique/primary 属性），避免仅保留最后一列
-            foreach ($item['columns'] as $column) {
-                $columns[] = [
-                    'name' => $column,
-                    'camel_name' => Str::camel($column),
-                    'studly_name' => Str::studly($column),
-                    'unique' => $item['unique'],
-                    'primary' => $item['primary'],
-                ];
+            $isSingleColumn = count($item['columns']) === 1;
+            // 单列唯一才是字段真正的 unique；复合唯一索引不代表单列独立唯一
+            $isUnique = (bool) ($item['unique'] && $isSingleColumn);
+            $isPrimary = (bool) $item['primary'];
+
+            foreach ($item['columns'] as $index => $column) {
+                if (! isset($columns[$column])) {
+                    $columns[$column] = [
+                        'name' => $column,
+                        'camel_name' => Str::camel($column),
+                        'studly_name' => Str::studly($column),
+                        'unique' => $isUnique,
+                        'primary' => $isPrimary,
+                        'is_composite' => ! $isSingleColumn,
+                        'is_lead_column' => $index === 0, // 联合索引最左前缀列标识
+                        'index_names' => [$item['name']],
+                    ];
+                } else {
+                    // 若已被其他索引录入，合并其索引属性（优先保留最高约束）
+                    $columns[$column]['unique'] = $columns[$column]['unique'] || $isUnique;
+                    $columns[$column]['primary'] = $columns[$column]['primary'] || $isPrimary;
+                    $columns[$column]['index_names'][] = $item['name'];
+                }
             }
         }
 
-        return $columns;
+        return array_values($columns);
     }
 
     private function getTableColumns(string $tableName, ?callable $callback = null): array
@@ -123,6 +137,8 @@ trait SchemaTrait
             if ($callback !== null) {
                 $column['base_type'] = $callback($column['type_name']);
                 $column['swagger_type'] = $column['base_type'] === 'int' ? 'integer' : $column['base_type'];
+                $isNullable = ! empty($column['nullable']);
+                $column['property_type'] = ($isNullable ? '?' : '').$column['base_type'];
             }
             $columns[$key] = $column;
         }

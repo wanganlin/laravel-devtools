@@ -15,7 +15,7 @@ class InitCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'gen:init';
+    protected $signature = 'gen:init {--module= : The module subdirectory to initialize} {--force : Force deletion without confirmation}';
 
     /**
      * The console command description.
@@ -26,8 +26,27 @@ class InitCommand extends Command
 
     public function handle(): void
     {
+        $module = (string) $this->option('module');
+        if (empty($module)) {
+            $this->error('Operation aborted: Initializing without specifying --module is forbidden to prevent accidental deletion of project root.');
+
+            return;
+        }
+
         $devConfig = new DevConfig;
-        $dist = $devConfig->getDist();
+        $dist = $devConfig->getDist($module);
+
+        if ($dist === base_path() || ! str_starts_with($dist, base_path())) {
+            $this->error('Security violation: Target path cannot be root directory.');
+
+            return;
+        }
+
+        if (! $this->option('force') && ! $this->confirm("Are you sure you want to clean directory [{$dist}]?")) {
+            $this->info('Cancelled.');
+
+            return;
+        }
 
         $fs = new Filesystem;
         if ($fs->exists($dist)) {
@@ -35,5 +54,6 @@ class InitCommand extends Command
         }
 
         $fs->ensureDirectoryExists($dist);
+        $this->info("Initialized directory: {$dist}");
     }
 }

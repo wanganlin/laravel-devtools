@@ -16,15 +16,15 @@ class {{ $className }}Entity implements \JsonSerializable
 @endforeach
 @foreach($tableColumns as $column)
 
-    #[OA\Property(property: '{{$column['camel_name']}}', description: '{{$column['comment']}}', type: '{{$column['swagger_type']}}')]
-    private {{$column['base_type']}} ${{$column['camel_name']}};
+    #[OA\Property(property: '{{$column['camel_name']}}', description: '{{$column['comment']}}', type: '{{$column['swagger_type']}}'@if(!empty($column['nullable'])), nullable: true @endif)]
+    private {{ $column['property_type'] ?? $column['base_type'] }} ${{$column['camel_name']}};
 @endforeach
 @foreach($tableColumns as $key => $column)
 
     /**
      * 获取{{$column['comment']}}
      */
-    public function get{{$column['studly_name']}}(): {{$column['base_type']}}
+    public function get{{$column['studly_name']}}(): {{ $column['property_type'] ?? $column['base_type'] }}
     {
         return $this->{{$column['camel_name']}};
     }
@@ -32,7 +32,7 @@ class {{ $className }}Entity implements \JsonSerializable
     /**
      * 设置{{$column['comment']}}
      */
-    public function set{{$column['studly_name']}}({{$column['base_type']}} ${{$column['camel_name']}}): void
+    public function set{{$column['studly_name']}}({{ $column['property_type'] ?? $column['base_type'] }} ${{$column['camel_name']}}): void
     {
         $this->{{$column['camel_name']}} = ${{$column['camel_name']}};
     }

@@ -86,8 +86,16 @@ class EnumsResolver extends Foundation
 
         $enums = '';
         foreach ($enumsOptions as [$value, $label]) {
-            $caseName = $isInt ? $enumsClass.$value : $this->toCaseName($enumsClass, $value);
-            $caseName = str_replace(" ", "", $caseName);
+            if ($isInt) {
+                // 若数值为负数（如 -1），将负号转换为 Minus，防止产生类似 Status-1 的致命语法错误
+                $cleanVal = str_starts_with((string) $value, '-')
+                    ? 'Minus'.ltrim((string) $value, '-')
+                    : (string) $value;
+                $caseName = $enumsClass.$cleanVal;
+            } else {
+                $caseName = $this->toCaseName($enumsClass, $value);
+            }
+            $caseName = preg_replace('/[^a-zA-Z0-9_\x80-\xff]/', '', $caseName);
             $caseValue = $isInt ? $value : "'".str_replace("'", "\\'", $value)."'";
             $enums .= <<<EOF
 
