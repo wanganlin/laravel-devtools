@@ -1,16 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use OpenApi\Generator;
+use OpenApi\Builder;
 
 Route::prefix('swagger-ui')->group(function () {
     // 显示swagger UI界面（扫描 Api/Domains/Modules 三种模块布局）
     Route::get('/', function () {
         $apis = [];
-        foreach (['Api', 'Domains', 'Modules'] as $root) {
-            foreach (\glob(app_path($root.'/*'), GLOB_ONLYDIR) ?: [] as $path) {
-                $apis[\basename($path)] = '/swagger-ui/openapi/'.\basename($path).'.json';
-            }
+        foreach (\glob(app_path('Api/*'), GLOB_ONLYDIR) ?: [] as $path) {
+            $apis[\basename($path)] = '/swagger-ui/openapi/'.\basename($path).'.json';
         }
 
         return view('__foundation__::swagger-ui', ['apis' => $apis]);
@@ -18,17 +16,18 @@ Route::prefix('swagger-ui')->group(function () {
 
     // 生成api文档
     Route::get('openapi/{api}.json', function (string $api) {
-        foreach (['Api', 'Domains', 'Modules'] as $root) {
-            $apiPath = app_path($root.'/'.$api);
-            if (! \is_dir($apiPath)) {
-                continue;
-            }
-
-            $openapi = (new Generator)->generate([$apiPath, app_path('Http/Responses')]);
-
-            return response()->json(json_decode($openapi->toJson(), true));
+        $apiPath = app_path('Api/'.$api);
+        if (! \is_dir($apiPath)) {
+            throw new Exception('Api模块不存在');
         }
 
-        throw new Exception('Api模块不存在');
+        $dirs = [$apiPath, app_path('Http/Responses')];
+        if (strtolower($api) === 'admin') {
+            array_push($dirs, app_path('Domains'));
+        }
+
+        $openapi = (new Builder)->setSources($dirs)->build();
+
+        return response()->json(json_decode($openapi->toJson(), true));
     });
 });

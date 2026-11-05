@@ -3,9 +3,7 @@ declare(strict_types=1);
 namespace {{ $namespace }}\Entities;
 
 use Juling\Foundation\Support\Traits\HasSerializableAttributes;
-use OpenApi\Attributes as OA;
 
-#[OA\Schema(schema: '{{ $className }}Entity')]
 class {{ $className }}Entity implements \JsonSerializable
 {
     use HasSerializableAttributes;
@@ -16,7 +14,6 @@ class {{ $className }}Entity implements \JsonSerializable
 @endforeach
 @foreach($tableColumns as $column)
 
-    #[OA\Property(property: '{{$column['camel_name']}}', description: '{{$column['comment']}}', type: '{{$column['swagger_type']}}'@if(!empty($column['nullable'])), nullable: true @endif)]
     private {{ $column['property_type'] ?? $column['base_type'] }} ${{$column['camel_name']}};
 @endforeach
 @foreach($tableColumns as $key => $column)

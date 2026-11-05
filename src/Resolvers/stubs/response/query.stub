@@ -4,50 +4,50 @@ namespace {{ $namespace }}\Responses\{{ $className }};
 
 use App\Http\Responses\PaginateLinkVo;
 use Juling\Foundation\Support\Traits\HasSerializableAttributes;
-use OpenApi\Attributes as OA;
+use OpenApi\Spec as OA;
 
 #[OA\Schema(schema: '{{ $className }}QueryResponse')]
 class {{ $className }}QueryResponse implements \JsonSerializable
 {
     use HasSerializableAttributes;
 
-    #[OA\Property(property: 'currentPage', description: '当前页码', type: 'integer')]
+    #[OA\Property(property: 'currentPage', schema: new OA\Schema(description: '当前页码', type: 'integer'))]
     private int $currentPage;
 
-    #[OA\Property(property: 'data', description: '数据列表', type: 'array', items: new OA\Items(ref: {{ $className }}Response::class))]
+    #[OA\Property(property: 'data', schema: new OA\Schema(description: '数据列表', type: 'array', items: new OA\Schema\Items(ref: {{ $className }}Response::class)))]
     private array $data;
 
-    #[OA\Property(property: 'firstPageUrl', description: '首页URL', type: 'string')]
+    #[OA\Property(property: 'firstPageUrl', schema: new OA\Schema(description: '首页URL', type: 'string'))]
     private string $firstPageUrl;
 
-    #[OA\Property(property: 'from', description: '当前页面上的开始位置', type: 'integer')]
+    #[OA\Property(property: 'from', schema: new OA\Schema(description: '当前页面上的开始位置', type: 'integer'))]
     private int $from;
 
-    #[OA\Property(property: 'lastPage', description: '最后页码', type: 'integer')]
+    #[OA\Property(property: 'lastPage', schema: new OA\Schema(description: '最后页码', type: 'integer'))]
     private int $lastPage;
 
-    #[OA\Property(property: 'lastPageUrl', description: '最后页URL', type: 'string')]
+    #[OA\Property(property: 'lastPageUrl', schema: new OA\Schema(description: '最后页URL', type: 'string'))]
     private string $lastPageUrl;
 
-    #[OA\Property(property: 'links', description: '分页链接的数组', type: 'array', items: new OA\Items(ref: PaginateLinkVo::class))]
+    #[OA\Property(property: 'links', schema: new OA\Schema(description: '分页链接的数组', type: 'array', items: new OA\Schema\Items(ref: PaginateLinkVo::class)))]
     private array $links;
 
-    #[OA\Property(property: 'nextPageUrl', description: '下一页URL', type: 'string')]
+    #[OA\Property(property: 'nextPageUrl', schema: new OA\Schema(description: '下一页URL', type: 'string'))]
     private string $nextPageUrl;
 
-    #[OA\Property(property: 'path', description: '分页URL', type: 'string')]
+    #[OA\Property(property: 'path', schema: new OA\Schema(description: '分页URL', type: 'string'))]
     private string $path;
 
-    #[OA\Property(property: 'perPage', description: '每页显示的记录数量', type: 'integer')]
+    #[OA\Property(property: 'perPage', schema: new OA\Schema(description: '每页显示的记录数量', type: 'integer'))]
     private int $perPage;
 
-    #[OA\Property(property: 'prevPageUrl', description: '上一页URL', type: 'string')]
+    #[OA\Property(property: 'prevPageUrl', schema: new OA\Schema(description: '上一页URL', type: 'string'))]
     private string $prevPageUrl;
 
-    #[OA\Property(property: 'to', description: '当前页面上的最后位置', type: 'integer')]
+    #[OA\Property(property: 'to', schema: new OA\Schema(description: '当前页面上的最后位置', type: 'integer'))]
     private int $to;
 
-    #[OA\Property(property: 'total', description: '数据总数', type: 'integer')]
+    #[OA\Property(property: 'total', schema: new OA\Schema(description: '数据总数', type: 'integer'))]
     private int $total;
 
     public function getCurrentPage(): int

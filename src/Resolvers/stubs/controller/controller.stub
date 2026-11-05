@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Juling\Foundation\Enums\BusinessEnum;
 use Juling\Foundation\Exceptions\BusinessException;
-use OpenApi\Attributes as OA;
+use OpenApi\Spec as OA;
 use Throwable;
 
 class {{ $className }}Controller extends BaseController
@@ -27,15 +27,15 @@ class {{ $className }}Controller extends BaseController
         private readonly {{ $serviceName }}Service ${{ $serviceCamelName }}Service,
     ) {}
 
-    #[OA\Post(path: '/{{ $classCamelName }}/search', summary: '查询{{ $comment }}列表接口', security: [['bearerAuth' => []]], tags: ['{{ $comment }}模块'])]
+    #[OA\Operation\Post(path: '/{{ $classCamelName }}/search', summary: '查询{{ $comment }}列表接口', security: [new OA\Security\Requirement(scheme: 'bearerAuth')], tags: ['{{ $comment }}模块'])]
     #[OA\Parameter(name: 'page', description: '当前页码', in: 'query', required: true, example: 1)]
     #[OA\Parameter(name: 'pageSize', description: '每页分页数', in: 'query', required: false, example: 10)]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(ref: {{ $className }}QueryRequest::class))]
-    #[OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(
+    #[OA\RequestBody(required: true, content: new OA\MediaType\Json(ref: {{ $className }}QueryRequest::class))]
+    #[OA\Response(response: 200, description: 'OK', content: new OA\MediaType\Json(
         properties: [
-            new OA\Property(property: 'code', type: 'integer', description: '状态码', example: 0),
-            new OA\Property(property: 'message', type: 'string', description: '消息', example: 'ok'),
-            new OA\Property(property: 'data', ref: {{ $className }}QueryResponse::class),
+            new OA\Property(property: 'code', schema: new OA\Schema(type: 'integer', description: '状态码', example: 0)),
+            new OA\Property(property: 'message', schema: new OA\Schema(type: 'string', description: '消息', example: 'ok')),
+            new OA\Property(property: 'data', schema: new OA\Schema(ref: {{ $className }}QueryResponse::class)),
         ],
     ))]
     public function search({{ $className }}QueryRequest $queryRequest): JsonResponse
@@ -77,13 +77,13 @@ if (isset($requestData[{{ $className }}QueryRequest::get{{$index['studly_name']}
         }
     }
 
-    #[OA\Post(path: '/{{ $classCamelName }}/store', summary: '新增{{ $comment }}接口', security: [['bearerAuth' => []]], tags: ['{{ $comment }}模块'])]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(ref: {{ $className }}CreateRequest::class))]
-    #[OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(
+    #[OA\Operation\Post(path: '/{{ $classCamelName }}/store', summary: '新增{{ $comment }}接口', security: [new OA\Security\Requirement(scheme: 'bearerAuth')], tags: ['{{ $comment }}模块'])]
+    #[OA\RequestBody(required: true, content: new OA\MediaType\Json(ref: {{ $className }}CreateRequest::class))]
+    #[OA\Response(response: 200, description: 'OK', content: new OA\MediaType\Json(
         properties: [
-            new OA\Property(property: 'code', type: 'integer', description: '状态码', example: 0),
-            new OA\Property(property: 'message', type: 'string', description: '消息', example: 'ok'),
-            new OA\Property(property: 'data', ref: {{ $className }}Response::class),
+            new OA\Property(property: 'code', schema: new OA\Schema(type: 'integer', description: '状态码', example: 0)),
+            new OA\Property(property: 'message', schema: new OA\Schema(type: 'string', description: '消息', example: 'ok')),
+            new OA\Property(property: 'data', schema: new OA\Schema(ref: {{ $className }}Response::class)),
         ],
     ))]
     public function store({{ $className }}CreateRequest $createRequest): JsonResponse
@@ -114,13 +114,13 @@ if (isset($requestData[{{ $className }}QueryRequest::get{{$index['studly_name']}
         }
     }
 
-    #[OA\Get(path: '/{{ $classCamelName }}/show', summary: '获取{{ $comment }}详情接口', security: [['bearerAuth' => []]], tags: ['{{ $comment }}模块'])]
+    #[OA\Operation\Get(path: '/{{ $classCamelName }}/show', summary: '获取{{ $comment }}详情接口', security: [new OA\Security\Requirement(scheme: 'bearerAuth')], tags: ['{{ $comment }}模块'])]
     #[OA\Parameter(name: 'id', description: 'ID', in: 'query', required: true, example: 1)]
-    #[OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(
+    #[OA\Response(response: 200, description: 'OK', content: new OA\MediaType\Json(
         properties: [
-            new OA\Property(property: 'code', type: 'integer', description: '状态码', example: 0),
-            new OA\Property(property: 'message', type: 'string', description: '消息', example: 'ok'),
-            new OA\Property(property: 'data', ref: {{ $className }}Response::class),
+            new OA\Property(property: 'code', schema: new OA\Schema(type: 'integer', description: '状态码', example: 0)),
+            new OA\Property(property: 'message', schema: new OA\Schema(type: 'string', description: '消息', example: 'ok')),
+            new OA\Property(property: 'data', schema: new OA\Schema(ref: {{ $className }}Response::class)),
         ],
     ))]
     public function show(Request $request): JsonResponse
@@ -147,14 +147,14 @@ if (isset($requestData[{{ $className }}QueryRequest::get{{$index['studly_name']}
         }
     }
 
-    #[OA\Put(path: '/{{ $classCamelName }}/update', summary: '更新{{ $comment }}接口', security: [['bearerAuth' => []]], tags: ['{{ $comment }}模块'])]
+    #[OA\Operation\Put(path: '/{{ $classCamelName }}/update', summary: '更新{{ $comment }}接口', security: [new OA\Security\Requirement(scheme: 'bearerAuth')], tags: ['{{ $comment }}模块'])]
     #[OA\Parameter(name: 'id', description: 'ID', in: 'query', required: true, example: 1)]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(ref: {{ $className }}UpdateRequest::class))]
-    #[OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(
+    #[OA\RequestBody(required: true, content: new OA\MediaType\Json(ref: {{ $className }}UpdateRequest::class))]
+    #[OA\Response(response: 200, description: 'OK', content: new OA\MediaType\Json(
         properties: [
-            new OA\Property(property: 'code', type: 'integer', description: '状态码', example: 0),
-            new OA\Property(property: 'message', type: 'string', description: '消息', example: 'ok'),
-            new OA\Property(property: 'data', ref: {{ $className }}Response::class),
+            new OA\Property(property: 'code', schema: new OA\Schema(type: 'integer', description: '状态码', example: 0)),
+            new OA\Property(property: 'message', schema: new OA\Schema(type: 'string', description: '消息', example: 'ok')),
+            new OA\Property(property: 'data', schema: new OA\Schema(ref: {{ $className }}Response::class)),
         ],
     ))]
     public function update({{ $className }}UpdateRequest $updateRequest): JsonResponse
@@ -189,13 +189,13 @@ if (isset($requestData[{{ $className }}QueryRequest::get{{$index['studly_name']}
         }
     }
 
-    #[OA\Post(path: '/{{ $classCamelName }}/destroy', summary: '删除{{ $comment }}接口', security: [['bearerAuth' => []]], tags: ['{{ $comment }}模块'])]
-    #[OA\RequestBody(required: true, content: new OA\JsonContent(ref: {{ $className }}DestroyRequest::class))]
-    #[OA\Response(response: 200, description: 'OK', content: new OA\JsonContent(
+    #[OA\Operation\Post(path: '/{{ $classCamelName }}/destroy', summary: '删除{{ $comment }}接口', security: [new OA\Security\Requirement(scheme: 'bearerAuth')], tags: ['{{ $comment }}模块'])]
+    #[OA\RequestBody(required: true, content: new OA\MediaType\Json(ref: {{ $className }}DestroyRequest::class))]
+    #[OA\Response(response: 200, description: 'OK', content: new OA\MediaType\Json(
         properties: [
-            new OA\Property(property: 'code', type: 'integer', description: '状态码', example: 0),
-            new OA\Property(property: 'message', type: 'string', description: '消息', example: 'ok'),
-            new OA\Property(property: 'data', ref: {{ $className }}DestroyResponse::class),
+            new OA\Property(property: 'code', schema: new OA\Schema(type: 'integer', description: '状态码', example: 0)),
+            new OA\Property(property: 'message', schema: new OA\Schema(type: 'string', description: '消息', example: 'ok')),
+            new OA\Property(property: 'data', schema: new OA\Schema(ref: {{ $className }}DestroyResponse::class)),
         ],
     ))]
     public function destroy({{ $className }}DestroyRequest $destroyRequest): JsonResponse

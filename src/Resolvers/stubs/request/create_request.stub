@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace {{ $namespace }}\Requests\{{ $className }};
 
 use Illuminate\Foundation\Http\FormRequest;
-use OpenApi\Attributes as OA;
+use OpenApi\Spec as OA;
 
 #[OA\Schema(
     schema: '{{ $schema }}',
@@ -14,7 +14,7 @@ use OpenApi\Attributes as OA;
     ],
     properties: [
 @foreach($tableColumns as $column)
-        new OA\Property(property: self::get{{ $column['studly_name'] }}, description: '{{$column['comment']}}', type: '{{$column['swagger_type']}}'),
+        new OA\Property(property: self::get{{ $column['studly_name'] }}, schema: new OA\Schema(description: '{{$column['comment']}}', type: '{{$column['swagger_type']}}')),
 @endforeach
     ]
 )]

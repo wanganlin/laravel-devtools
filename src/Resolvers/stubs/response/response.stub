@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace {{ $namespace }}\Responses\{{ $className }};
 
 use Juling\Foundation\Support\Traits\HasSerializableAttributes;
-use OpenApi\Attributes as OA;
+use OpenApi\Spec as OA;
 
 #[OA\Schema(schema: '{{ $className }}Response')]
 class {{ $className }}Response implements \JsonSerializable
@@ -11,7 +11,7 @@ class {{ $className }}Response implements \JsonSerializable
     use HasSerializableAttributes;
 @foreach($tableColumns as $column)
 
-    #[OA\Property(property: '{{$column['camel_name']}}', description: '{{$column['comment']}}', type: '{{$column['swagger_type']}}')]
+    #[OA\Property(property: '{{$column['camel_name']}}', schema: new OA\Schema(description: '{{$column['comment']}}', type: '{{$column['swagger_type']}}'))]
     private {{$column['base_type']}} ${{$column['camel_name']}};
 @endforeach
 @foreach($tableColumns as $key => $column)

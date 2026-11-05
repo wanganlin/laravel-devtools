@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace {{ $namespace }}\Requests\{{ $className }};
 
 use Illuminate\Foundation\Http\FormRequest;
-use OpenApi\Attributes as OA;
+use OpenApi\Spec as OA;
 
 #[OA\Schema(
     schema: '{{ $schema }}',
@@ -11,7 +11,7 @@ use OpenApi\Attributes as OA;
         'ids',
     ],
     properties: [
-        new OA\Property(property: self::getIds, description: '数据ID集合', type: 'array', items: new OA\Items(type: 'integer')),
+        new OA\Property(property: self::getIds, schema: new OA\Schema(description: '数据ID集合', type: 'array', items: new OA\Schema\Items(type: 'integer'))),
     ]
 )]
 class {{ $schema }} extends FormRequest

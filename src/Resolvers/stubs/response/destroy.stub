@@ -3,14 +3,14 @@ declare(strict_types=1);
 namespace {{ $namespace }}\Responses\{{ $className }};
 
 use Juling\Foundation\Support\Traits\HasSerializableAttributes;
-use OpenApi\Attributes as OA;
+use OpenApi\Spec as OA;
 
 #[OA\Schema(schema: '{{ $className }}DestroyResponse')]
 class {{ $className }}DestroyResponse implements \JsonSerializable
 {
     use HasSerializableAttributes;
 
-    #[OA\Property(property: 'status', description: '状态:1成功，2失败', type: 'integer')]
+    #[OA\Property(property: 'status', schema: new OA\Schema(description: '状态:1成功，2失败', type: 'integer'))]
     private int $status;
 
     public function setStatus(int $status): void
