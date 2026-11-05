@@ -18,7 +18,7 @@ class TypescriptResolver extends Foundation
 
     public function build(DevConfig $devConfig, array $data): void
     {
-        $this->tsDist = $devConfig->getDist('packages');
+        $this->tsDist = $devConfig->getDist('resources');
 
         $files = glob(base_path('docs/api/*.json'));
         foreach ($files as $file) {
@@ -157,7 +157,7 @@ export function {$service}Api({$requestParams}): Promise{$response} {
                     continue;
                 }
 
-                $servicePath = $this->tsDist.'/'.$module.'/src/api';
+                $servicePath = $this->tsDist.'/'.$module.'/src/services';
                 $this->ensureDirectoryExists($servicePath);
 
                 $helpers = array_unique($groupHelpers[$group] ?? []);
@@ -227,6 +227,11 @@ export function {$service}Api({$requestParams}): Promise{$response} {
 
             if (isset($schema['required']) && ! in_array($name, $schema['required'])) {
                 $name = $name.'?';
+            }
+
+            if (is_array($type)) {
+                $name = $name.'?';
+                $type = $type[0];
             }
 
             $c .= "  $name: $type,$description\n";
